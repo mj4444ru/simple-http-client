@@ -1,0 +1,40 @@
+{
+    "name": "mj4444/simple-http-client",
+    "description": "Simple Http Client",
+    "keywords": [
+        "simple",
+        "http",
+        "client",
+        "php"
+    ],
+    "type": "library",
+    "license": "Unlicense",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Mj4444\\SimpleHttpClient\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Eugene",
+            "email": "mj4444@mail.ru"
+        }
+    ],
+    "support": {
+        "email": "mj4444@mail.ru",
+        "chat": "https://t.me/mj4444ru"
+    },
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "ext-curl": "*",
+        "codeception/codeception": "^5.3.2",
+        "codeception/module-phpbrowser": "*",
+        "codeception/module-asserts": "*"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
