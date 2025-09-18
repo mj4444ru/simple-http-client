@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\Contracts;
 
-use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
-
+/**
+ * @template TResponse of HttpResponseInterface
+ */
 interface HttpRequestInterface
 {
     public function getBody(): ?string;
 
     /**
-     * @return lowercase-string|non-empty-array<lowercase-string|null>|null
-     */
-    public function getExpectedContentType(): string|array|null;
-
-    /**
      * @return non-empty-string[]
      */
-    public function getHeaders(?bool $isPostRequest = null): array;
+    public function getHeaders(): array;
+
+    /**
+     * @return non-negative-int|null
+     */
+    public function getMaxRedirects(): ?int;
 
     /**
      * @return non-empty-string
@@ -34,10 +35,12 @@ interface HttpRequestInterface
 
     /**
      * @param array<string, list<string>> $headers
+     * @return TResponse
      */
     public function makeResponse(
         int $httpCode,
         string $url,
+        string $effectiveUrl,
         array $headers,
         ?string $contentType,
         string $response

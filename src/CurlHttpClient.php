@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mj4444\SimpleHttpClient;
 
 use CurlHandle;
-use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
+use LogicException;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
@@ -16,13 +16,8 @@ use function strlen;
 /**
  * @api
  */
-class CurlHttpClient implements HttpClientInterface
+class CurlHttpClient extends BaseHttpClient
 {
-    /**
-     * @var non-empty-string[]
-     */
-    public array $headers = [];
-    public bool $responseHeadersRequired = false;
     private readonly CurlHandle $curl;
 
     /**
@@ -32,27 +27,33 @@ class CurlHttpClient implements HttpClientInterface
         private array $options = [],
         CurlHandle $curlHandle = null
     ) {
-        $this->curl = $curlHandle ?? curl_init();
+        $this->curl = $curlHandle ?? curl_init()
+            ?: throw new LogicException('Curl http request needs to be initialized');
     }
 
     /**
      * @inheritDoc
      *
+     * @template TResponse of HttpResponseInterface
+     * @param HttpRequestInterface<TResponse> $request
+     * @return TResponse
      * @throws CurlException
      */
     public function request(HttpRequestInterface $request): HttpResponseInterface
     {
-        $method = $request->getMethod();
-        $url = $request->getUrl();
         $body = $request->getBody();
         $isPost = $body !== null;
-        $headers = [...$this->headers, ...$request->getHeaders($isPost)];
+        $maxRedirects = $request->getMaxRedirects() ?? $this->maxRedirects;
 
-        $options = $this->options;
-        $options[CURLOPT_URL] = $url;
-        $options[CURLOPT_POST] = $isPost;
-        $options[CURLOPT_CUSTOMREQUEST] = $method;
-        $options[CURLOPT_HTTPHEADER] = $headers;
+        $options = [
+            ...$this->options,
+            CURLOPT_URL => $request->getUrl(),
+            CURLOPT_POST => $isPost,
+            CURLOPT_CUSTOMREQUEST => $request->getMethod(),
+            CURLOPT_HTTPHEADER => [...$this->headers, ...$request->getHeaders()],
+            CURLOPT_FOLLOWLOCATION => $maxRedirects > 0,
+            CURLOPT_MAXREDIRS => max($maxRedirects, 0),
+        ];
 
         return $this->execute($options, $request);
     }
@@ -68,23 +69,11 @@ class CurlHttpClient implements HttpClientInterface
     }
 
     /**
-     * @param non-empty-string $header
-     * @return $this
+     * @inheritDoc
      */
-    public function setHeader(string|int $index, string $header): static
+    public function setConnectTimeout(?int $connectTimeout): static
     {
-        $this->headers[$index] = $header;
-
-        return $this;
-    }
-
-    /**
-     * @param non-empty-string[] $headers
-     * @return $this
-     */
-    public function setHeaders(array $headers): static
-    {
-        $this->headers = $headers;
+        $this->options[CURLOPT_CONNECTTIMEOUT] = $connectTimeout;
 
         return $this;
     }
@@ -107,24 +96,42 @@ class CurlHttpClient implements HttpClientInterface
     public function setProxy(string $proxyString = '', bool $socks5 = false): static
     {
         if (empty($proxyString)) {
-            unset($this->options[CURLOPT_PROXY], $this->options[CURLOPT_HTTPPROXYTUNNEL], $this->options[CURLOPT_PROXYTYPE]);
+            $this->options[CURLOPT_PROXY] = null;
+            $this->options[CURLOPT_HTTPPROXYTUNNEL] = null;
+            $this->options[CURLOPT_PROXYTYPE] = null;
 
             return $this;
         }
 
         $this->options[CURLOPT_PROXY] = $proxyString;
         $this->options[CURLOPT_HTTPPROXYTUNNEL] = true;
-
-        if ($socks5) {
-            $this->options[CURLOPT_PROXYTYPE] = CURLPROXY_SOCKS5;
-        }
+        $this->options[CURLOPT_PROXYTYPE] = $socks5 ? CURLPROXY_SOCKS5 : CURLPROXY_HTTP;
 
         return $this;
     }
 
-    public function setResponseHeadersRequired(bool $value): void
+    public function setReferer(?string $referer): static
     {
-        $this->responseHeadersRequired = $value;
+        $this->options[CURLOPT_REFERER] = $referer;
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setTimeout(?int $timeout): static
+    {
+        $this->options[CURLOPT_TIMEOUT] = $timeout;
+
+        return $this;
+    }
+
+    public function setUserAgent(?string $userAgent): static
+    {
+        $this->options[CURLOPT_USERAGENT] = $userAgent;
+
+        return $this;
     }
 
     /**
@@ -138,7 +145,10 @@ class CurlHttpClient implements HttpClientInterface
     }
 
     /**
+     * @template TResponse of HttpResponseInterface
      * @param array<int, mixed> $options
+     * @param HttpRequestInterface<TResponse> $request
+     * @return TResponse
      * @throws CurlException
      */
     protected function execute(array $options, HttpRequestInterface $request): HttpResponseInterface
@@ -167,9 +177,11 @@ class CurlHttpClient implements HttpClientInterface
         }
 
         $httpCode = (int)curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
-        $url = (string)curl_getinfo($this->curl, CURLINFO_EFFECTIVE_URL);
+        $effectiveUrl = (string)curl_getinfo($this->curl, CURLINFO_EFFECTIVE_URL);
         $contentType = (string)(curl_getinfo($this->curl, CURLINFO_CONTENT_TYPE) ?: null);
+        /** @var string $url */
+        $url = $options[CURLOPT_URL];
 
-        return $request->makeResponse($httpCode, $url, $headers, $contentType, $response);
+        return $request->makeResponse($httpCode, $url, $effectiveUrl, $headers, $contentType, $response);
     }
 }

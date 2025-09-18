@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest;
 
-use Mj4444\SimpleHttpClient\HttpResponse\HttpResponse;
 use Mj4444\SimpleHttpClient\HttpResponse\JsonHttpResponse;
 
-class JsonHttpRequest extends HttpRequest
+/**
+ * @extends BaseHttpRequest<JsonHttpResponse>
+ */
+final class JsonHttpRequest extends BaseHttpRequest
 {
     /**
      * @var non-empty-string|null
@@ -28,16 +30,15 @@ class JsonHttpRequest extends HttpRequest
 
     /**
      * @inheritDoc
-     *
-     * @noinspection PhpMissingParentCallCommonInspection
      */
     public function makeResponse(
         int $httpCode,
         string $url,
+        string $effectiveUrl,
         array $headers,
         ?string $contentType,
         string $response
-    ): HttpResponse {
-        return new JsonHttpResponse($this, $httpCode, $url, $headers, $contentType, $response);
+    ): JsonHttpResponse {
+        return new JsonHttpResponse($this, $httpCode, $url, $effectiveUrl, $headers, $contentType, $response);
     }
 }

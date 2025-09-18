@@ -17,9 +17,6 @@ final class UrlencodedBody implements HttpRequestBodyInterface
     ) {
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getBody(): string
     {
         return http_build_query($this->data);

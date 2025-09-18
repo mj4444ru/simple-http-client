@@ -8,9 +8,6 @@ use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
 
 final class NoBody implements HttpRequestBodyInterface
 {
-    /**
-     * @inheritDoc
-     */
     public function getBody(): string
     {
         return '';
