@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient;
 
-use Closure;
 use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
-use Mj4444\SimpleHttpClient\Exceptions\HttpClientException;
 
 final class DebugHttpClient implements HttpClientInterface
 {
@@ -18,10 +16,6 @@ final class DebugHttpClient implements HttpClientInterface
     public static bool $isGlobalDebug = true;
     public ?HttpRequestInterface $lastRequest = null;
     public ?HttpResponseInterface $lastResponse = null;
-    /**
-     * @var (Closure(HttpRequestInterface, HttpClientInterface): HttpResponseInterface)|null
-     */
-    private ?Closure $middleware = null;
 
     public function __construct(
         private readonly HttpClientInterface $parent
@@ -31,7 +25,9 @@ final class DebugHttpClient implements HttpClientInterface
     /**
      * @inheritDoc
      *
-     * @throws HttpClientException
+     * @template TResponse of HttpResponseInterface
+     * @param HttpRequestInterface<TResponse> $request
+     * @return TResponse
      */
     public function request(HttpRequestInterface $request): HttpResponseInterface
     {
@@ -41,9 +37,7 @@ final class DebugHttpClient implements HttpClientInterface
         self::$globalLastRequest = self::$isGlobalDebug ? $request : null;
         self::$globalLastResponse = null;
 
-        $response = $this->middleware
-            ? ($this->middleware)($request, $this->parent)
-            : $this->parent->request($request);
+        $response = $this->parent->request($request);
 
 
         if ($this->isDebug) {
@@ -69,16 +63,5 @@ final class DebugHttpClient implements HttpClientInterface
     public static function setGlobalDebug(bool $value): void
     {
         self::$isGlobalDebug = $value;
-    }
-
-    /**
-     * @param (Closure(HttpRequestInterface, HttpClientInterface): HttpResponseInterface)|null $middleware
-     * @return $this
-     */
-    public function setMiddleware(?Closure $middleware): self
-    {
-        $this->middleware = $middleware;
-
-        return $this;
     }
 }

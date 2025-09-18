@@ -7,6 +7,7 @@ namespace Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 
 use function count;
+use function sprintf;
 
 final class UnexpectedHttpCodeException extends HttpException
 {

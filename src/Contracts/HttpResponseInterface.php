@@ -4,22 +4,18 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\Contracts;
 
-use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\HttpException;
-use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\ParseDataException;
-use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\UnexpectedContentTypeException;
-
+/**
+ * @template TRequest of HttpRequestInterface
+ */
 interface HttpResponseInterface
 {
     /**
      * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
-     * @throws UnexpectedContentTypeException
      */
     public function checkContentType(string|array|null $expectedContentType = null): void;
 
     /**
      * @param int|non-empty-array<int> $allowedCode
-     *
-     * @throws HttpException
      */
     public function checkHttpCode(int|array $allowedCode = 200): void;
 
@@ -27,11 +23,9 @@ interface HttpResponseInterface
 
     public function getContentType(): ?string;
 
-    /**
-     * @throws UnexpectedContentTypeException
-     * @throws ParseDataException
-     */
     public function getData(): mixed;
+
+    public function getEffectiveUrl(): string;
 
     public function getFirstHeader(string $name): ?string;
 
@@ -42,6 +36,11 @@ interface HttpResponseInterface
 
     public function getHttpCode(): int;
 
+    public function getRedirectUrl(): ?string;
+
+    /**
+     * @return TRequest
+     */
     public function getRequest(): HttpRequestInterface;
 
     public function getUrl(): string;

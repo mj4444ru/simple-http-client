@@ -7,8 +7,12 @@ namespace Mj4444\SimpleHttpClient\HttpResponse;
 use JsonException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\JsonDecodeException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\UnexpectedContentTypeException;
+use Mj4444\SimpleHttpClient\HttpRequest\JsonHttpRequest;
 
-class JsonHttpResponse extends HttpResponse
+/**
+ * @extends BaseHttpResponse<JsonHttpRequest>
+ */
+final class JsonHttpResponse extends BaseHttpResponse
 {
     public static ?bool $decodeAssociative = true;
     /**
@@ -18,33 +22,23 @@ class JsonHttpResponse extends HttpResponse
     public static int $decodeFlags = 0;
 
     /**
-     * @inheritDoc
-     *
      * @throws UnexpectedContentTypeException
      * @throws JsonDecodeException
-     * @noinspection PhpMissingParentCallCommonInspection
      */
-    public function getData(): mixed
+    public function getData(?bool $associative = null): mixed
     {
         $this->checkContentType();
 
         try {
-            return static::jsonDecode($this->body);
+            return json_decode(
+                $this->body,
+                $associative ?? self::$decodeAssociative,
+                self::$decodeDepth,
+                self::$decodeFlags | JSON_THROW_ON_ERROR
+            );
         } catch (JsonException $e) {
+            /** @psalm-var BaseHttpResponse $this Psalm bug? https://github.com/vimeo/psalm/issues/11562 */
             throw new JsonDecodeException($this, $e);
         }
-    }
-
-    /**
-     * @throws JsonException
-     */
-    protected static function jsonDecode(string $body): mixed
-    {
-        return json_decode(
-            $body,
-            self::$decodeAssociative,
-            self::$decodeDepth,
-            self::$decodeFlags | JSON_THROW_ON_ERROR
-        );
     }
 }

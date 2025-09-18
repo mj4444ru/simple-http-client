@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Mj4444\SimpleHttpClient\Contracts;
+namespace Mj4444\SimpleHttpClient\HttpRequest;
 
 enum HttpMethod: string
 {

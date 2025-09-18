@@ -20,8 +20,6 @@ final class JsonBody implements HttpRequestBodyInterface
     }
 
     /**
-     * @inheritDoc
-     *
      * @throws JsonEncodeExceptionHttp
      */
     public function getBody(): string
