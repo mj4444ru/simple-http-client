@@ -7,6 +7,9 @@ namespace Mj4444\SimpleHttpClient\Exceptions\HttpRequest;
 use LogicException;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 
+/**
+ * @api
+ */
 final class BodyRequiredException extends LogicException
 {
     public function __construct(

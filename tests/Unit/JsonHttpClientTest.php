@@ -19,6 +19,8 @@ use Mj4444\SimpleHttpClient\JsonHttpClient;
 use PHPUnit\Framework\MockObject\MockObject;
 use stdClass;
 
+use function sprintf;
+
 /**
  * @api
  */
@@ -29,6 +31,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testAddHeader(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->addHeader('X-H: Test; addHeader');
         $response = $client->get('https://example.com', null, ['X-H: Test']);
@@ -39,6 +42,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->addHeader('X-H: Test; addHeader')
             ->addHeader('X-H: Test; addHeader');
@@ -50,6 +54,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         /** @psalm-suppress InvalidArgument */
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->addHeader('');
@@ -64,7 +69,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testBadJsonRequest(): void
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $body = new stdClass();
         $body->ref = $body;
@@ -81,6 +86,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testBadJsonResponse(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClientWithHtml('application/json; charset=utf-8'));
         try {
             $client->get('https://example.com');
@@ -92,6 +98,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testDelete(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->delete('https://example.com', ['param1' => 1], ['X-H: Test']);
         self::assertSame([
@@ -104,6 +111,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testGet(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->get('https://example.com', ['param1' => 1], ['X-H: Test']);
         self::assertSame([
@@ -116,6 +124,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testHtmlResponse(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClientWithHtml());
         try {
             $client->get('https://example.com');
@@ -127,6 +136,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testHttpExceptions(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(404));
         try {
             $client->get('https://example.com');
@@ -135,6 +145,7 @@ final class JsonHttpClientTest extends Unit
             self::assertSame('Not Found.', $e->getMessage());
         }
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(500));
         try {
             $client->get('https://example.com');
@@ -146,6 +157,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testPatch(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->patch('https://example.com', ['test' => true], ['param1' => 1], ['X-H: Test']);
         self::assertSame([
@@ -158,6 +170,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testPost(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->post('https://example.com', ['test' => true], ['param1' => 1], ['X-H: Test']);
         self::assertSame([
@@ -170,6 +183,7 @@ final class JsonHttpClientTest extends Unit
 
     public function testPut(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->put('https://example.com', ['test' => true], ['param1' => 1], ['X-H: Test']);
         self::assertSame([
@@ -182,18 +196,22 @@ final class JsonHttpClientTest extends Unit
 
     public function testSetAllowedResponseCode(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(201));
         $client->setAllowedHttpCode(201);
         $client->get('https://example.com');
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(201));
         $client->setAllowedHttpCode([201]);
         $client->get('https://example.com');
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(201));
         $client->setAllowedHttpCode([201, 202]);
         $client->get('https://example.com');
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $client->setAllowedHttpCode(201);
         try {
@@ -203,6 +221,7 @@ final class JsonHttpClientTest extends Unit
             self::assertSame('Expected http code 201, but received http code 200.', $e->getMessage());
         }
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $client->setAllowedHttpCode([201]);
         try {
@@ -212,6 +231,7 @@ final class JsonHttpClientTest extends Unit
             self::assertSame('Expected http code 201, but received http code 200.', $e->getMessage());
         }
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $client->setAllowedHttpCode([201, 202]);
         try {
@@ -221,6 +241,7 @@ final class JsonHttpClientTest extends Unit
             self::assertSame('Expected http codes [201,202], but received http code 200.', $e->getMessage());
         }
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         /** @psalm-suppress InvalidArgument */
         $client->setAllowedHttpCode([]);
@@ -234,18 +255,22 @@ final class JsonHttpClientTest extends Unit
 
     public function testSetExpectedContentType(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient(contentType: 'application/json; test')))
             ->setExpectedContentType('application/json; test');
         $client->get('https://example.com');
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient(contentType: null)))
             ->setExpectedContentType(null);
         $client->get('https://example.com');
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient(contentType: null)))
             ->setExpectedContentType(['application/json', null]);
         $client->get('https://example.com');
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(contentType: 'application/json; test'));
         try {
             $client->get('https://example.com');
@@ -254,6 +279,7 @@ final class JsonHttpClientTest extends Unit
             self::assertSame('Unexpected ContentType.', $e->getMessage());
         }
 
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient(contentType: null));
         try {
             $client->get('https://example.com');
@@ -268,6 +294,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testSetHeader(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeader('X-H', 'X-H: Test; setHeader');
         $response = $client->get('https://example.com', null, ['X-H: Test']);
@@ -278,6 +305,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeader('X-H', 'X-H: Test')
             ->setHeader('X-H', 'X-H: Test');
@@ -289,6 +317,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeader('X-H', 'X-H: Test')
             ->setHeader('X-H', null);
@@ -300,6 +329,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->addHeader('X-H: Test')
             ->setHeader(0, null);
@@ -311,6 +341,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeader('X-H', 'X-H: Test; setHeader');
         $response = $client->get('https://example.com', null, ['X-H' => 'X-H: Test']);
@@ -321,6 +352,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeader('X-H', 'X-H: Test; setHeader');
         /** @psalm-suppress InvalidArgument */
@@ -338,6 +370,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testSetHeaders(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeaders(['X-H: Test; setHeaders']);
         $response = $client->get('https://example.com', null, ['X-H: Test']);
@@ -348,6 +381,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         /** @psalm-suppress InvalidArgument */
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setHeaders(['']);
@@ -365,6 +399,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testSetRequestAccept(): void
     {
+        // Simple test
         $client = new JsonHttpClient($this->createMockHttpClient());
         $response = $client->get('https://example.com');
         self::assertSame([
@@ -374,6 +409,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestAccept('application/json');
         $response = $client->get('https://example.com');
@@ -384,6 +420,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestAccept(null);
         $response = $client->get('https://example.com');
@@ -394,6 +431,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         /** @psalm-suppress InvalidArgument */
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestAccept('');
@@ -411,6 +449,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testSetRequestContentType(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestContentType('application/json');
         $response = $client->post('https://example.com', ['test' => true]);
@@ -421,6 +460,7 @@ final class JsonHttpClientTest extends Unit
             '{"test":true}',
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestContentType('application/json');
         $response = $client->post('https://example.com', null);
@@ -431,6 +471,7 @@ final class JsonHttpClientTest extends Unit
             'null',
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestContentType('application/json');
         $response = $client->post('https://example.com', new NoBody());
@@ -441,6 +482,7 @@ final class JsonHttpClientTest extends Unit
             '',
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestContentType('application/json');
         $response = $client->post('https://example.com', new UrlencodedBody(['test' => true]));
@@ -451,6 +493,7 @@ final class JsonHttpClientTest extends Unit
             'test=1',
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setRequestContentType('application/json');
         $response = $client->post('https://example.com', new UrlencodedBody([]));
@@ -467,6 +510,7 @@ final class JsonHttpClientTest extends Unit
      */
     public function testSetResponseHeadersRequired(): void
     {
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()));
         $response = $client->get('https://example.com');
         self::assertSame([
@@ -476,6 +520,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setResponseHeadersRequired();
         $response = $client->get('https://example.com');
@@ -487,6 +532,7 @@ final class JsonHttpClientTest extends Unit
             'ResponseHeadersRequired',
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setResponseHeadersRequired(false);
         $response = $client->get('https://example.com');
@@ -497,6 +543,7 @@ final class JsonHttpClientTest extends Unit
             null,
         ], $response);
 
+        // Simple test
         $client = (new JsonHttpClient($this->createMockHttpClient()))
             ->setResponseHeadersRequired()
             ->setResponseHeadersRequired(null);
@@ -513,20 +560,18 @@ final class JsonHttpClientTest extends Unit
         int $code = 200,
         ?string $contentType = 'application/json; charset=utf-8'
     ): MockObject&HttpClientInterface {
-        /** @noinspection PhpUnhandledExceptionInspection */
         $mock = $this->createMock(HttpClientInterface::class);
         $mock->expects($this->once())
             ->method('request')
             ->willReturnCallback(static function (HttpRequestInterface $request) use ($code, $contentType) {
-                $body = $request->getBody();
-                $isPostRequest = $body !== null;
-                $requestData = [$request->getMethod(), $request->getUrl(), $request->getHeaders($isPostRequest), $body];
+                $requestData = [$request->getMethod(), $request->getUrl(), $request->getHeaders(), $request->getBody()];
                 if ($request->isResponseHeadersRequired()) {
                     $requestData[] = 'ResponseHeadersRequired';
                 }
                 $requestDataJson = json_encode($requestData, JSON_THROW_ON_ERROR);
+                $url = $request->getUrl();
 
-                return $request->makeResponse($code, $request->getUrl(), [], $contentType, $requestDataJson);
+                return $request->makeResponse($code, $url, $url, null, [], $contentType, $requestDataJson);
             });
 
         return $mock;
@@ -534,12 +579,13 @@ final class JsonHttpClientTest extends Unit
 
     private function createMockHttpClientWithHtml(?string $contentType = 'text/html'): MockObject&HttpClientInterface
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
         $mock = $this->createMock(HttpClientInterface::class);
         $mock->expects($this->once())
             ->method('request')
             ->willReturnCallback(static function (HttpRequestInterface $request) use ($contentType) {
-                return $request->makeResponse(200, $request->getUrl(), [], $contentType, '<html lang="en"></html>');
+                $url = $request->getUrl();
+
+                return $request->makeResponse(200, $url, $url, null, [], $contentType, '<html lang="en"></html>');
             });
 
         return $mock;

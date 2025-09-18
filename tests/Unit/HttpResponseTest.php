@@ -30,16 +30,22 @@ final class HttpResponseTest extends Unit
 {
     public function testCheckContentType(): void
     {
+        // Prepare complex tests
         $response = $this->createResponse();
 
+        // Complex test
         $response->checkContentType();
 
+        // Simple test
         $response->checkContentType('text/html');
 
+        // Simple test
         $response->checkContentType(['text/html']);
 
+        // Simple test
         $response->checkContentType(['text/plain', 'text/html']);
 
+        // Simple test
         try {
             $response->checkContentType('text/plain');
             self::failException(NotAcceptableException::class);
@@ -47,6 +53,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Unexpected ContentType.', $e->getMessage());
         }
 
+        // Simple test
         try {
             $response->checkContentType(['text/plain']);
             self::failException(NotAcceptableException::class);
@@ -54,14 +61,18 @@ final class HttpResponseTest extends Unit
             self::assertSame('Unexpected ContentType.', $e->getMessage());
         }
 
+        // Simple test
+        try {
+            $response->checkContentType(['text/plain', 'text/markdown']);
+            self::failException(NotAcceptableException::class);
+        } catch (UnexpectedContentTypeException $e) {
+            self::assertSame('Unexpected ContentType.', $e->getMessage());
+        }
+
+        // Prepare complex tests
         $response = $this->createResponse(expectedContentType: ['text/plain']);
 
-        $response->checkContentType('text/html');
-
-        $response->checkContentType(['text/html']);
-
-        $response->checkContentType(['text/plain', 'text/html']);
-
+        // Complex test
         try {
             $response->checkContentType();
             self::failException(NotAcceptableException::class);
@@ -69,10 +80,49 @@ final class HttpResponseTest extends Unit
             self::assertSame('Unexpected ContentType.', $e->getMessage());
         }
 
-        $response = $this->createResponse(expectedContentType: ['text/plain', 'text/html']);
+        // Complex test
+        try {
+            $response->checkContentType();
+            self::failException(NotAcceptableException::class);
+        } catch (UnexpectedContentTypeException $e) {
+            self::assertSame('Unexpected ContentType.', $e->getMessage());
+        }
 
+        // Complex test
+        try {
+            $response->checkContentType('text/markdown');
+            self::failException(NotAcceptableException::class);
+        } catch (UnexpectedContentTypeException $e) {
+            self::assertSame('Unexpected ContentType.', $e->getMessage());
+        }
+
+        // Complex test
+        try {
+            $response->checkContentType();
+            self::failException(NotAcceptableException::class);
+        } catch (UnexpectedContentTypeException $e) {
+            self::assertSame('Unexpected ContentType.', $e->getMessage());
+        }
+
+        // Complex test
+        $response->checkContentType('text/html');
+
+        // Complex test
+        $response->checkContentType(['text/html']);
+
+        // Complex test
+        $response->checkContentType(['text/plain', 'text/html']);
+
+        // Complex test
         $response->checkContentType();
 
+        // Prepare complex tests
+        $response = $this->createResponse(expectedContentType: ['text/plain', 'text/html']);
+
+        // Complex test
+        $response->checkContentType();
+
+        // Complex test
         try {
             $response->checkContentType(['text/plain']);
             self::failException(NotAcceptableException::class);
@@ -83,9 +133,11 @@ final class HttpResponseTest extends Unit
 
     public function testCheckHttpCodes2xx(): void
     {
+        // Simple test
         $response = $this->createResponse();
         $response->checkHttpCode();
 
+        // Simple test
         $response = $this->createResponse(201);
         try {
             $response->checkHttpCode();
@@ -98,6 +150,7 @@ final class HttpResponseTest extends Unit
 
     public function testCheckHttpCodes4xx(): void
     {
+        // Simple test
         $response = $this->createResponse(400);
         try {
             $response->checkHttpCode();
@@ -106,6 +159,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Bad Request.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(401);
         try {
             $response->checkHttpCode();
@@ -114,6 +168,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Unauthorized.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(403);
         try {
             $response->checkHttpCode();
@@ -122,6 +177,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Forbidden.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(404);
         try {
             $response->checkHttpCode();
@@ -130,6 +186,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Not Found.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(405);
         try {
             $response->checkHttpCode();
@@ -138,6 +195,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Method Not Allowed.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(406);
         try {
             $response->checkHttpCode();
@@ -146,6 +204,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Not Acceptable.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(407);
         try {
             $response->checkHttpCode();
@@ -154,6 +213,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Proxy Authentication Required.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(429);
         try {
             $response->checkHttpCode();
@@ -165,6 +225,7 @@ final class HttpResponseTest extends Unit
 
     public function testCheckHttpCodes5xx(): void
     {
+        // Simple test
         $response = $this->createResponse(500);
         try {
             $response->checkHttpCode();
@@ -173,6 +234,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Internal Server Error.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(501);
         try {
             $response->checkHttpCode();
@@ -181,6 +243,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Not Implemented.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(502);
         try {
             $response->checkHttpCode();
@@ -189,6 +252,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Bad Gateway.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(503);
         try {
             $response->checkHttpCode();
@@ -197,6 +261,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Service Unavailable.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(504);
         try {
             $response->checkHttpCode();
@@ -205,6 +270,7 @@ final class HttpResponseTest extends Unit
             self::assertSame('Gateway Timeout.', $e->getMessage());
         }
 
+        // Simple test
         $response = $this->createResponse(599);
         try {
             $response->checkHttpCode();
@@ -216,54 +282,83 @@ final class HttpResponseTest extends Unit
 
     public function testGetBody(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertSame('<html lang="en"></html>', $response->getBody());
     }
 
     public function testGetContentType(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertSame('text/html', $response->getContentType());
 
+        // Simple test
         $response = $this->createResponse(contentType: '');
         self::assertSame('', $response->getContentType());
 
+        // Simple test
         $response = $this->createResponse(contentType: null);
         self::assertNull($response->getContentType());
     }
 
+    public function testGetEffectiveUrl(): void
+    {
+        // Simple test
+        $response = $this->createResponse();
+        self::assertSame('https://example.com', $response->getEffectiveUrl());
+    }
+
     public function testGetFirstHeader(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertNull($response->getFirstHeader('X-H'));
 
+        // Simple test
         $response = $this->createResponse(headers: ['X-H' => ['true', '1']]);
         self::assertSame(['X-H' => ['true', 1 => '1']], $response->getHeaders());
     }
 
     public function testGetHeaders(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertSame([], $response->getHeaders());
 
+        // Simple test
         $response = $this->createResponse(headers: ['X-H' => ['true', '1']]);
         self::assertSame(['X-H' => ['true', '1']], $response->getHeaders());
     }
 
     public function testGetHttpCode(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertSame(200, $response->getHttpCode());
     }
 
+    public function testGetRedirectUrl(): void
+    {
+        // Simple test
+        $response = $this->createResponse();
+        self::assertNull($response->getRedirectUrl());
+
+        // Simple test
+        $response = $this->createResponse(redirectUrl: 'http://example.com/redirect');
+        self::assertSame('http://example.com/redirect', $response->getRedirectUrl());
+    }
+
     public function testGetRequest(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertInstanceOf(HttpRequest::class, $response->getRequest());
     }
 
     public function testGetUrl(): void
     {
+        // Simple test
         $response = $this->createResponse();
         self::assertSame('https://example.com', $response->getUrl());
     }
@@ -276,15 +371,25 @@ final class HttpResponseTest extends Unit
         int $httpCode = 200,
         ?string $contentType = 'text/html',
         array $headers = [],
-        string|array|null $expectedContentType = null
+        string|array|null $expectedContentType = null,
+        ?string $redirectUrl = null
     ): HttpResponse {
         $request = new HttpRequest('https://example.com');
+        $url = $request->getUrl();
 
         if ($expectedContentType !== null) {
             $request->setExpectedContentType($expectedContentType);
         }
 
-        return $request->makeResponse($httpCode, $request->getUrl(), $headers, $contentType, '<html lang="en"></html>');
+        return $request->makeResponse(
+            $httpCode,
+            $url,
+            $url,
+            $redirectUrl,
+            $headers,
+            $contentType,
+            '<html lang="en"></html>'
+        );
     }
 
     /**

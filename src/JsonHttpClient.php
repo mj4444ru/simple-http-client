@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Mj4444\SimpleHttpClient;
 
 use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
-use Mj4444\SimpleHttpClient\Contracts\HttpMethod;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
-use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\HttpClientException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\HttpException;
+use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
 use Mj4444\SimpleHttpClient\HttpRequest\JsonHttpRequest;
+use Mj4444\SimpleHttpClient\HttpResponse\JsonHttpResponse;
 
+/**
+ * @api
+ */
 class JsonHttpClient
 {
     /**
@@ -75,7 +78,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    public function deleteEx(string $url, ?array $query = null, array $headers = []): HttpResponseInterface
+    public function deleteEx(string $url, ?array $query = null, array $headers = []): JsonHttpResponse
     {
         return $this->doGet($url, $query, HttpMethod::Delete, $headers);
     }
@@ -99,7 +102,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    public function getEx(string $url, ?array $query = null, array $headers = []): HttpResponseInterface
+    public function getEx(string $url, ?array $query = null, array $headers = []): JsonHttpResponse
     {
         return $this->doGet($url, $query, HttpMethod::Get, $headers);
     }
@@ -123,7 +126,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    public function patchEx(string $url, mixed $body, ?array $query = null, array $headers = []): HttpResponseInterface
+    public function patchEx(string $url, mixed $body, ?array $query = null, array $headers = []): JsonHttpResponse
     {
         return $this->doPost($url, $body, $query, HttpMethod::Patch, $headers);
     }
@@ -147,7 +150,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    public function postEx(string $url, mixed $body, ?array $query = null, array $headers = []): HttpResponseInterface
+    public function postEx(string $url, mixed $body, ?array $query = null, array $headers = []): JsonHttpResponse
     {
         return $this->doPost($url, $body, $query, HttpMethod::Post, $headers);
     }
@@ -171,7 +174,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    public function putEx(string $url, mixed $body, ?array $query = null, array $headers = []): HttpResponseInterface
+    public function putEx(string $url, mixed $body, ?array $query = null, array $headers = []): JsonHttpResponse
     {
         return $this->doPost($url, $body, $query, HttpMethod::Put, $headers);
     }
@@ -259,7 +262,7 @@ class JsonHttpClient
     /**
      * @throws HttpException
      */
-    protected function checkHttpCode(HttpResponseInterface $response): void
+    protected function checkHttpCode(JsonHttpResponse $response): void
     {
         if ($this->allowedHttpCode !== null) {
             $response->checkHttpCode($this->allowedHttpCode);
@@ -273,7 +276,7 @@ class JsonHttpClient
      * @throws HttpClientException
      * @throws HttpException
      */
-    protected function doGet(string $url, ?array $query, HttpMethod $method, array $headers): HttpResponseInterface
+    protected function doGet(string $url, ?array $query, HttpMethod $method, array $headers): JsonHttpResponse
     {
         $request = (new JsonHttpRequest($url, $query, $method))
             ->setHeaders([...$this->headers, ...$headers])
@@ -301,7 +304,7 @@ class JsonHttpClient
         ?array $query,
         HttpMethod $method,
         array $headers
-    ): HttpResponseInterface {
+    ): JsonHttpResponse {
         $request = (new JsonHttpRequest($url, $query, $method))
             ->setHeaders([...$this->headers, ...$headers])
             ->setAccept($this->requestAccept)
@@ -321,10 +324,7 @@ class JsonHttpClient
         return $response;
     }
 
-    /**
-     * @throws HttpClientException
-     */
-    protected function doRequest(JsonHttpRequest $request): HttpResponseInterface
+    protected function doRequest(JsonHttpRequest $request): JsonHttpResponse
     {
         return $this->client->request($request);
     }
