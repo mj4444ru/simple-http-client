@@ -7,7 +7,7 @@ namespace Unit;
 use Codeception\Test\Unit;
 use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
-use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\JsonEncodeExceptionHttp;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\JsonEncodeException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\InternalServerErrorException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\NotFoundException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\UnexpectedHttpCodeException;
@@ -75,8 +75,8 @@ final class JsonHttpClientTest extends Unit
         $body->ref = $body;
         try {
             $client->post('https://example.com', $body);
-            self::failException(JsonEncodeExceptionHttp::class);
-        } catch (JsonEncodeExceptionHttp $e) {
+            self::failException(JsonEncodeException::class);
+        } catch (JsonEncodeException $e) {
             self::assertSame('Recursion detected', $e->getMessage());
             self::assertSame($body, $e->getData());
         } finally {

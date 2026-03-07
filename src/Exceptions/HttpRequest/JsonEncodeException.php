@@ -6,7 +6,7 @@ namespace Mj4444\SimpleHttpClient\Exceptions\HttpRequest;
 
 use JsonException;
 
-final class JsonEncodeExceptionHttp extends HttpRequestException
+final class JsonEncodeException extends HttpRequestException
 {
     public function __construct(
         public readonly mixed $data,

@@ -6,10 +6,12 @@ namespace Mj4444\SimpleHttpClient\HttpRequest\Body;
 
 use JsonException;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
-use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\JsonEncodeExceptionHttp;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\JsonEncodeException;
 
 final class JsonBody implements HttpRequestBodyInterface
 {
+    public static int $encodeFlags = JSON_UNESCAPED_UNICODE;
+
     /**
      * @param non-empty-string|null $contentType
      */
@@ -20,14 +22,14 @@ final class JsonBody implements HttpRequestBodyInterface
     }
 
     /**
-     * @throws JsonEncodeExceptionHttp
+     * @throws JsonEncodeException
      */
     public function getBody(): string
     {
         try {
-            return json_encode($this->data, JSON_THROW_ON_ERROR);
+            return json_encode($this->data, self::$encodeFlags | JSON_THROW_ON_ERROR);
         } catch (JsonException $e) {
-            throw new JsonEncodeExceptionHttp($this->data, $e);
+            throw new JsonEncodeException($this->data, $e);
         }
     }
 
