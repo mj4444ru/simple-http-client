@@ -6,20 +6,20 @@ namespace Mj4444\SimpleHttpClient\HttpRequest\Body;
 
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
 
-final class UrlencodedBody implements BodyInterface
+final class StringBody implements BodyInterface
 {
     /**
      * @param non-empty-string|null $contentType
      */
     public function __construct(
-        public array|object $data,
-        public ?string $contentType = 'application/x-www-form-urlencoded'
+        public string $value,
+        public ?string $contentType = null
     ) {
     }
 
     public function getBody(): string
     {
-        return http_build_query($this->data);
+        return $this->value;
     }
 
     /**

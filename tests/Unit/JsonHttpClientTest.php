@@ -21,9 +21,6 @@ use stdClass;
 
 use function sprintf;
 
-/**
- * @api
- */
 final class JsonHttpClientTest extends Unit
 {
     /**
@@ -40,6 +37,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['X-H: Test; addHeader', 'X-H: Test', 'Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -52,6 +50,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['X-H: Test; addHeader', 'X-H: Test; addHeader', 'X-H: Test', 'Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -63,6 +62,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             [1 => 'X-H: Test', 2 => 'Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
     }
@@ -92,7 +92,7 @@ final class JsonHttpClientTest extends Unit
             $client->get('https://example.com');
             self::failException(JsonDecodeException::class);
         } catch (JsonDecodeException $e) {
-            self::assertSame('Not valid json.', $e->getMessage());
+            self::assertSame('JSON decode error.', $e->getMessage());
         }
     }
 
@@ -106,6 +106,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com?param1=1',
             ['X-H: Test', 'Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
     }
 
@@ -118,6 +119,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com?param1=1',
             ['X-H: Test', 'Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
     }
@@ -163,8 +165,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'PATCH',
             'https://example.com?param1=1',
-            ['X-H: Test', 'Accept: application/json; charset=utf-8', 'Content-Type: application/json; charset=utf-8'],
+            ['X-H: Test', 'Accept: application/json; charset=utf-8'],
             '{"test":true}',
+            'application/json; charset=utf-8',
         ], $response);
     }
 
@@ -176,8 +179,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'POST',
             'https://example.com?param1=1',
-            ['X-H: Test', 'Accept: application/json; charset=utf-8', 'Content-Type: application/json; charset=utf-8'],
+            ['X-H: Test', 'Accept: application/json; charset=utf-8'],
             '{"test":true}',
+            'application/json; charset=utf-8',
         ], $response);
     }
 
@@ -189,8 +193,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'PUT',
             'https://example.com?param1=1',
-            ['X-H: Test', 'Accept: application/json; charset=utf-8', 'Content-Type: application/json; charset=utf-8'],
+            ['X-H: Test', 'Accept: application/json; charset=utf-8'],
             '{"test":true}',
+            'application/json; charset=utf-8',
         ], $response);
     }
 
@@ -303,6 +308,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['X-H' => 'X-H: Test; setHeader', 'X-H: Test', 'Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -314,6 +320,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             ['X-H' => 'X-H: Test', 'Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
 
@@ -327,6 +334,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -339,6 +347,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -349,6 +358,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             ['X-H' => 'X-H: Test', 'Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
 
@@ -361,6 +371,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
     }
@@ -379,6 +390,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['X-H: Test; setHeaders', 'X-H: Test', 'Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -390,6 +402,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             [1 => 'X-H: Test', 2 => 'Accept: application/json; charset=utf-8'],
+            null,
             null,
         ], $response);
     }
@@ -407,6 +420,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -417,6 +431,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             ['Accept: application/json'],
+            null,
             null,
         ], $response);
 
@@ -429,6 +444,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             [],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -440,6 +456,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             [],
+            null,
             null,
         ], $response);
     }
@@ -456,8 +473,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'POST',
             'https://example.com',
-            ['Accept: application/json; charset=utf-8', 'Content-Type: application/json'],
+            ['Accept: application/json; charset=utf-8'],
             '{"test":true}',
+            'application/json',
         ], $response);
 
         // Simple test
@@ -467,8 +485,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'POST',
             'https://example.com',
-            ['Accept: application/json; charset=utf-8', 'Content-Type: application/json'],
+            ['Accept: application/json; charset=utf-8'],
             'null',
+            'application/json',
         ], $response);
 
         // Simple test
@@ -480,6 +499,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             '',
+            null,
         ], $response);
 
         // Simple test
@@ -489,8 +509,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'POST',
             'https://example.com',
-            ['Accept: application/json; charset=utf-8', 'Content-Type: application/x-www-form-urlencoded'],
+            ['Accept: application/json; charset=utf-8'],
             'test=1',
+            'application/x-www-form-urlencoded',
         ], $response);
 
         // Simple test
@@ -500,8 +521,9 @@ final class JsonHttpClientTest extends Unit
         self::assertSame([
             'POST',
             'https://example.com',
-            ['Accept: application/json; charset=utf-8', 'Content-Type: application/x-www-form-urlencoded'],
+            ['Accept: application/json; charset=utf-8'],
             '',
+            'application/x-www-form-urlencoded',
         ], $response);
     }
 
@@ -518,6 +540,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -528,6 +551,7 @@ final class JsonHttpClientTest extends Unit
             'GET',
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
+            null,
             null,
             'ResponseHeadersRequired',
         ], $response);
@@ -541,6 +565,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
 
         // Simple test
@@ -553,6 +578,7 @@ final class JsonHttpClientTest extends Unit
             'https://example.com',
             ['Accept: application/json; charset=utf-8'],
             null,
+            null,
         ], $response);
     }
 
@@ -564,7 +590,10 @@ final class JsonHttpClientTest extends Unit
         $mock->expects($this->once())
             ->method('request')
             ->willReturnCallback(static function (HttpRequestInterface $request) use ($code, $contentType) {
-                $requestData = [$request->getMethod(), $request->getUrl(), $request->getHeaders(), $request->getBody()];
+                $headers = $request->getHeaders();
+                $bodyContentType = $request->getBody()?->getBody();
+                $body = $request->getBody()?->getContentType();
+                $requestData = [$request->getMethod(), $request->getUrl(), $headers, $bodyContentType, $body];
                 if ($request->isResponseHeadersRequired()) {
                     $requestData[] = 'ResponseHeadersRequired';
                 }

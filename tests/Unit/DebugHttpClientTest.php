@@ -11,9 +11,6 @@ use Mj4444\SimpleHttpClient\DebugHttpClient;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 
-/**
- * @api
- */
 class DebugHttpClientTest extends Unit
 {
     public function testRequest(): void

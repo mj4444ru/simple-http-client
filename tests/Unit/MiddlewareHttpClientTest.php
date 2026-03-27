@@ -13,9 +13,6 @@ use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
 use Mj4444\SimpleHttpClient\MiddlewareHttpClient;
 use PHPUnit\Framework\MockObject\MockObject;
 
-/**
- * @api
- */
 class MiddlewareHttpClientTest extends Unit
 {
     public function testSetMiddleware(): void

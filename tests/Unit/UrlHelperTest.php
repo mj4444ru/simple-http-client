@@ -10,45 +10,42 @@ use RuntimeException;
 
 use function sprintf;
 
-/**
- * @api
- */
 final class UrlHelperTest extends Unit
 {
     public function testBase64UrlEncode(): void
     {
         // Simple test
         $str = UrlHelper::base64UrlEncode('Test');
-        $this->assertSame('VGVzdA', $str);
+        self::assertSame('VGVzdA', $str);
     }
 
     public function testExtractParamFromUrl(): void
     {
         // Simple test
         $param = UrlHelper::extractParamFromUrl('http://example.com/?foo=bar', 'foo');
-        $this->assertSame('bar', $param);
+        self::assertSame('bar', $param);
 
         // Simple test
         $param = UrlHelper::extractParamFromUrl('http://example.com/?foo=bar', 'bar');
-        $this->assertNull($param);
+        self::assertNull($param);
     }
 
     public function testExtractParamsFromUrl(): void
     {
         // Simple test
         $params = UrlHelper::extractParamsFromUrl('http://example.com');
-        $this->assertSame([], $params);
+        self::assertSame([], $params);
 
         // Simple test
         $params = UrlHelper::extractParamsFromUrl('http://example.com/?foo=bar');
-        $this->assertSame(['foo' => 'bar'], $params);
+        self::assertSame(['foo' => 'bar'], $params);
     }
 
     public function testExtractRequireParamFromUrl(): void
     {
         // Simple test
         $param = UrlHelper::extractRequireParamFromUrl('http://example.com/?foo=bar', 'foo');
-        $this->assertSame('bar', $param);
+        self::assertSame('bar', $param);
 
         // Simple test
         try {

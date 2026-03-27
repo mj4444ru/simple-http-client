@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\Contracts;
 
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
+
 /**
  * @template TResponse of HttpResponseInterface
  */
 interface HttpRequestInterface
 {
-    public function getBody(): ?string;
+    public function getBody(): BodyInterface|null;
 
     /**
      * @return non-empty-string[]

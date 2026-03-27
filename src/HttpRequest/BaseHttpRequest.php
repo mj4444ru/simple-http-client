@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest;
 
-use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FileInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\StringFileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\FileBody;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\JsonBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartFormBody;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\NoBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\StreamBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\StringBody;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\UrlencodedBody;
 use Mj4444\SimpleHttpClient\HttpResponse\BaseHttpResponse;
 
 use function in_array;
-use function is_object;
 
 /**
- * @api
  * @template TResponse of BaseHttpResponse
  * @implements HttpRequestInterface<TResponse>
  */
@@ -26,11 +30,7 @@ abstract class BaseHttpRequest implements HttpRequestInterface
      * @var non-empty-string|null
      */
     public ?string $accept = null;
-    public string|HttpRequestBodyInterface|null $body = null;
-    /**
-     * @var non-empty-string|null
-     */
-    public ?string $contentType = null;
+    public BodyInterface|null $body = null;
     /**
      * @var lowercase-string|non-empty-array<lowercase-string|null>|null
      */
@@ -68,11 +68,9 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         return $this;
     }
 
-    public function getBody(): ?string
+    public function getBody(): BodyInterface|null
     {
-        return is_object($this->body)
-            ? $this->body->getBody()
-            : $this->body;
+        return $this->body;
     }
 
     /**
@@ -82,20 +80,9 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     {
         $headers = array_filter($this->headers);
 
-        /** @psalm-suppress RedundantCondition */
-        if ($this->accept !== null && $this->accept !== '') {
+        /** @psalm-suppress RiskyTruthyFalsyComparison */
+        if ($this->accept) {
             $headers[] = 'Accept: ' . $this->accept;
-        }
-
-        if ($this->isPost()) {
-            $contentType = $this->body instanceof HttpRequestBodyInterface
-                ? $this->body->getBodyContentType()
-                : $this->contentType;
-
-            /** @psalm-suppress RedundantCondition */
-            if ($contentType !== null && $contentType !== '') {
-                $headers[] = 'Content-Type: ' . $contentType;
-            }
         }
 
         return $headers;
@@ -165,20 +152,9 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     /**
      * @return $this
      */
-    public function setBody(string|HttpRequestBodyInterface|null $body): static
+    public function setBody(BodyInterface|null $body): static
     {
         $this->body = $body;
-
-        return $this;
-    }
-
-    /**
-     * @param non-empty-string|null $contentType
-     * @return $this
-     */
-    public function setContentType(?string $contentType): static
-    {
-        $this->contentType = $contentType;
 
         return $this;
     }
@@ -192,6 +168,20 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         $this->expectedContentType = $expectedContentType;
 
         return $this;
+    }
+
+    /**
+     * @param non-empty-string|null $contentType
+     * @param non-negative-int $offset
+     * @return $this
+     */
+    public function setFileBody(
+        string $fileName,
+        ?string $contentType = null,
+        int $offset = 0,
+        ?int $length = null
+    ): static {
+        return $this->setBody(new FileBody($fileName, $contentType, $offset, $length));
     }
 
     /**
@@ -257,6 +247,15 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * @param array<non-empty-string, string|int|FileInterface|StringFileInterface> $fields
+     * @return $this
+     */
+    public function setMultipartFormBody(array $fields): static
+    {
+        return $this->setBody(new MultipartFormBody($fields));
+    }
+
+    /**
      * @return $this
      */
     public function setNoBody(): static
@@ -299,6 +298,30 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         $this->responseHeadersRequired = $value;
 
         return $this;
+    }
+
+    /**
+     * @param resource $resource
+     * @param non-empty-string|null $contentType
+     * @param non-negative-int|null $offset
+     * @return $this
+     */
+    public function setStreamBody(
+        $resource,
+        ?string $contentType = null,
+        ?int $offset = null,
+        ?int $length = null
+    ): static {
+        return $this->setBody(new StreamBody($resource, $contentType, $offset, $length));
+    }
+
+    /**
+     * @param non-empty-string|null $contentType
+     * @return $this
+     */
+    public function setStringBody(string $value, ?string $contentType = null): static
+    {
+        return $this->setBody(new StringBody($value, $contentType));
     }
 
     /**

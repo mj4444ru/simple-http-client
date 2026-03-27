@@ -16,10 +16,6 @@ final class JsonHttpRequest extends BaseHttpRequest
      */
     public ?string $accept = 'application/json; charset=utf-8';
     /**
-     * @var non-empty-string|null
-     */
-    public ?string $contentType = 'application/json; charset=utf-8';
-    /**
      * @var lowercase-string|non-empty-array<lowercase-string|null>|null
      */
     public string|array|null $expectedContentType = [
@@ -48,7 +44,8 @@ final class JsonHttpRequest extends BaseHttpRequest
             $redirectUrl,
             $headers,
             $contentType,
-            $response
+            $response,
+            $this->expectedContentType
         );
     }
 }

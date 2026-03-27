@@ -19,6 +19,17 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
+        <ClassMustBeFinal errorLevel="suppress" />
         <MissingOverrideAttribute errorLevel="suppress" />
+        <PossiblyUnusedMethod>
+            <errorLevel type="suppress">
+                <directory name="src/Exceptions" />
+            </errorLevel>
+        </PossiblyUnusedMethod>
+        <UnusedClass>
+            <errorLevel type="suppress">
+                <directory name="tests/Unit" />
+            </errorLevel>
+        </UnusedClass>
     </issueHandlers>
 </psalm>

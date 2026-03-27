@@ -7,15 +7,21 @@ namespace Unit;
 use Codeception\Test\Unit;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\NotAcceptableException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\UnexpectedContentTypeException;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\FileBody;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\JsonBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartBody\File;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartBody\StringFile;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartFormBody;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\NoBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\StreamBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\StringBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\UrlencodedBody;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
 use Mj4444\SimpleHttpClient\HttpResponse\BaseHttpResponse;
 
-/**
- * @api
- */
+use function sprintf;
+
 final class HttpRequestTest extends Unit
 {
     public function testAddHeader(): void
@@ -32,16 +38,62 @@ final class HttpRequestTest extends Unit
         self::assertSame(['X-Test: Test', 'X-Test: Test'], $request->getHeaders());
     }
 
+    public function testConstructor(): void
+    {
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        self::assertSame('https://example.com', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', []);
+        self::assertSame('https://example.com', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', ['param1' => '1']);
+        self::assertSame('https://example.com?param1=1', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', ['param1' => '1', 'param2' => '2']);
+        self::assertSame('https://example.com?param1=1&param2=2', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', ['param1' => ['1', '2']]);
+        self::assertSame('https://example.com?param1%5B0%5D=1&param1%5B1%5D=2', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', ['param' => '& + &amp;']);
+        self::assertSame('https://example.com?param=%26+%2B+%26amp%3B', $request->getUrl());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        self::assertSame('GET', $request->getMethod());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Get);
+        self::assertSame('GET', $request->getMethod());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+        self::assertSame('POST', $request->getMethod());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Put);
+        self::assertSame('PUT', $request->getMethod());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Patch);
+        self::assertSame('PATCH', $request->getMethod());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Delete);
+        self::assertSame('DELETE', $request->getMethod());
+    }
+
     public function testGetBody(): void
     {
         // Simple test
         $request = new HttpRequest('https://example.com', null, HttpMethod::Get);
         self::assertNull($request->getBody());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
-        $request->setBody('Test');
-        self::assertSame('Test', $request->getBody());
 
         // Simple test
         $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
@@ -119,56 +171,12 @@ final class HttpRequestTest extends Unit
         $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
 
         // Simple test
-        $request->setBody('');
-        self::assertSame('', $request->getBody());
-
-        // Simple test
-        $request->setBody('Test &amp; + <>');
-        self::assertSame('Test &amp; + <>', $request->getBody());
-
-        // Simple test
-        $request->setBody(' ');
-        self::assertSame(' ', $request->getBody());
-
-        // Simple test
         $request->setBody(null);
         self::assertNull($request->getBody());
 
-        $request->setBody('test');
-        $request->setBody(new NoBody());
-        self::assertSame('', $request->getBody());
-    }
-
-    public function testSetContentType(): void
-    {
         // Simple test
-        $request = new HttpRequest('https://example.com', null);
-        $request->setContentType('text/html');
-        self::assertSame([], $request->getHeaders());
-
-        // Prepare complex tests
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
-
-        // Complex test
-        $request->setContentType('text/html');
-        self::assertSame(['Content-Type: text/html'], $request->getHeaders());
-
-        // Complex test
-        $request->setContentType('text/plain');
-        self::assertSame(['Content-Type: text/plain'], $request->getHeaders());
-
-        // Complex test
-        $request->setHeaders(['Content-Type: text/html']);
-        self::assertSame(['Content-Type: text/html', 'Content-Type: text/plain'], $request->getHeaders());
-
-        // Complex test
-        /** @psalm-suppress InvalidArgument */
-        $request->setContentType('');
-        self::assertSame(['Content-Type: text/html'], $request->getHeaders());
-
-        // Complex test
-        $request->setContentType(null);
-        self::assertSame(['Content-Type: text/html'], $request->getHeaders());
+        $body = new NoBody();
+        self::assertSame($body, $request->setBody($body)->getBody());
     }
 
     public function testSetExpectedContentType(): void
@@ -193,23 +201,15 @@ final class HttpRequestTest extends Unit
 
         // Simple test
         $response = $this->createResponse();
-        $response->checkContentType();
+        self::assertNull($response->expectedContentType);
 
         // Simple test
         $response = $this->createResponse(expectedContentType: 'text/html');
-        $response->checkContentType();
+        self::assertSame('text/html', $response->expectedContentType);
 
         // Simple test
         $response = $this->createResponse(expectedContentType: ['text/html']);
-        $response->checkContentType();
-
-        // Simple test
-        $response = $this->createResponse(expectedContentType: ['text/html']);
-        $response->checkContentType();
-
-        // Simple test
-        $response = $this->createResponse(expectedContentType: ['text/plain', 'text/html']);
-        $response->checkContentType();
+        self::assertSame(['text/html'], $response->expectedContentType);
 
         // Simple test
         /** @psalm-suppress InvalidArgument */
@@ -238,6 +238,43 @@ final class HttpRequestTest extends Unit
         } catch (UnexpectedContentTypeException $e) {
             self::assertSame('Unexpected ContentType.', $e->getMessage());
         }
+    }
+
+    public function testSetFileBody(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        // Complex test
+        $body = $request->setFileBody('/path/to/file.txt')->getBody();
+        self::assertInstanceOf(FileBody::class, $body);
+        self::assertNull($body->getContentType());
+
+        // Complex test
+        $body = $request->setFileBody('/path/to/file.json', 'application/json')->getBody();
+        self::assertInstanceOf(FileBody::class, $body);
+        self::assertEquals('application/json', $body->getContentType());
+    }
+
+    public function testSetFollowLocation(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com');
+
+        // Complex test
+        self::assertNull($request->followLocation);
+
+        // Complex test
+        $request->setFollowLocation(true);
+        self::assertTrue($request->followLocation);
+
+        // Complex test
+        $request->setFollowLocation(false);
+        self::assertFalse($request->followLocation);
+
+        // Complex test
+        $request->setFollowLocation(null);
+        self::assertNull($request->followLocation);
     }
 
     public function testSetHeader(): void
@@ -289,20 +326,39 @@ final class HttpRequestTest extends Unit
         $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
 
         // Complex test
-        self::assertNull($request->body);
+        self::assertNull($request->getBody());
 
         // Complex test
-        $request->setJsonBody(null);
-        /** @psalm-suppress DocblockTypeContradiction */
-        self::assertInstanceOf(JsonBody::class, $request->body);
-        self::assertNull($request->contentType);
-        self::assertSame('null', $request->getBody());
-        self::assertSame(['Content-Type: application/json; charset=utf-8'], $request->getHeaders());
+        $body = $request->setJsonBody(null)->getBody();
+        self::assertInstanceOf(JsonBody::class, $body);
+        self::assertSame('null', $body->getBody());
+        self::assertSame('application/json; charset=utf-8', $body->getContentType());
 
         // Complex test
-        $request->setJsonBody(null, 'application/json')
-            ->setContentType('text/html');
-        self::assertSame(['Content-Type: application/json'], $request->getHeaders());
+        $body = $request->setJsonBody(['foo' => 'bar'])->getBody();
+        self::assertInstanceOf(JsonBody::class, $body);
+        self::assertSame('{"foo":"bar"}', $body->getBody());
+    }
+
+    public function testSetMaxRedirects(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com');
+
+        // Complex test
+        self::assertNull($request->maxRedirects);
+
+        // Complex test
+        $request->setMaxRedirects(5);
+        self::assertSame(5, $request->maxRedirects);
+
+        // Complex test
+        $request->setMaxRedirects(-1);
+        self::assertSame(-1, $request->maxRedirects);
+
+        // Complex test
+        $request->setMaxRedirects(null);
+        self::assertNull($request->maxRedirects);
     }
 
     public function testSetMethod(): void
@@ -334,6 +390,31 @@ final class HttpRequestTest extends Unit
         self::assertSame('GET', $request->getMethod());
     }
 
+    public function testSetMultipartFormBody(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        // Complex test
+        $file1 = new File('file.txt', 'file.txt', 'text/plain');
+        $file2 = new StringFile('Content', 'file.txt', 'text/plain');
+        $request = $request->setMultipartFormBody([
+            'field' => 'value',
+            'int' => 5,
+            'file1' => $file1,
+            'file2' => $file2,
+        ]);
+        $body = $request->getBody();
+        self::assertInstanceOf(MultipartFormBody::class, $body);
+        self::assertNull($body->getContentType());
+        self::assertSame([
+            'field' => 'value',
+            'int' => 5,
+            'file1' => $file1,
+            'file2' => $file2,
+        ], $body->getBody()->getFields());
+    }
+
     public function testSetNoBody(): void
     {
         // Prepare complex tests
@@ -343,16 +424,10 @@ final class HttpRequestTest extends Unit
         self::assertNull($request->body);
 
         // Complex test
-        $request->setNoBody();
-        /** @psalm-suppress DocblockTypeContradiction */
-        self::assertInstanceOf(NoBody::class, $request->body);
-        self::assertNull($request->contentType);
-        self::assertSame('', $request->getBody());
-
-        // Complex test
-        $request->setNoBody()
-            ->setContentType('text/html');
-        self::assertSame([], $request->getHeaders());
+        $body = $request->setNoBody()->getBody();
+        self::assertInstanceOf(NoBody::class, $body);
+        self::assertEquals('', $body->getBody());
+        self::assertNull($body->getContentType());
     }
 
     public function testSetQuery(): void
@@ -410,6 +485,22 @@ final class HttpRequestTest extends Unit
         self::assertSame('https://example.com?param1=1', $request->getUrl());
     }
 
+    public function testSetReferer(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com');
+
+        // Complex test
+        $request->setReferer('https://referer.com');
+        self::assertSame(['referer' => 'Referer: https://referer.com'], $request->getHeaders());
+
+        // Complex test
+        $refererRequest = new HttpRequest('https://referer-request.com');
+        /** @psalm-suppress InvalidArgument */
+        $request->setReferer($refererRequest);
+        self::assertSame(['referer' => 'Referer: https://referer-request.com'], $request->getHeaders());
+    }
+
     public function testSetResponseHeadersRequired(): void
     {
         // Prepare complex tests
@@ -436,6 +527,60 @@ final class HttpRequestTest extends Unit
         self::assertNull($request->isResponseHeadersRequired());
     }
 
+    public function testSetStreamBody(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStreamBody($resource)->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertNull($body->getContentType());
+        self::assertNull($body->offset);
+        self::assertNull($body->length);
+        fclose($resource);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStreamBody($resource, 'application/octet-stream')->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertEquals('application/octet-stream', $body->getContentType());
+        self::assertNull($body->offset);
+        self::assertNull($body->length);
+        fclose($resource);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStreamBody($resource, 'application/octet-stream', 0, 100)->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertEquals('application/octet-stream', $body->getContentType());
+        self::assertEquals(0, $body->offset);
+        self::assertEquals(100, $body->length);
+        fclose($resource);
+    }
+
+    public function testSetStringBody(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        // Complex test
+        $body = $request->setStringBody('test content')->getBody();
+        self::assertInstanceOf(StringBody::class, $body);
+        self::assertSame('test content', $body->getBody());
+        self::assertNull($body->getContentType());
+
+        // Complex test
+        $body = $request->setStringBody('test content', 'text/plain')->getBody();
+        self::assertInstanceOf(StringBody::class, $body);
+        self::assertSame('test content', $body->getBody());
+        self::assertEquals('text/plain', $body->getContentType());
+    }
+
     public function testSetUrl(): void
     {
         // Prepare complex tests
@@ -455,73 +600,19 @@ final class HttpRequestTest extends Unit
         $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
 
         // Complex test
-        $request->setUrlencodedBody([])
-            ->setUrlencodedBody(['p1' => '1', 'p2' => '& + &amp;']);
-        self::assertSame('p1=1&p2=%26+%2B+%26amp%3B', $request->getBody());
-        self::assertSame(['Content-Type: application/x-www-form-urlencoded'], $request->getHeaders());
-
-        // Complex test
-        $request->setHeaders([]);
-        self::assertSame(['Content-Type: application/x-www-form-urlencoded'], $request->getHeaders());
-    }
-
-    public function test__construct(): void
-    {
-        // Simple test
-        $request = new HttpRequest('https://example.com');
-        self::assertSame('https://example.com', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', []);
-        self::assertSame('https://example.com', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', ['param1' => '1']);
-        self::assertSame('https://example.com?param1=1', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', ['param1' => '1', 'param2' => '2']);
-        self::assertSame('https://example.com?param1=1&param2=2', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', ['param1' => ['1', '2']]);
-        self::assertSame('https://example.com?param1%5B0%5D=1&param1%5B1%5D=2', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', ['param' => '& + &amp;']);
-        self::assertSame('https://example.com?param=%26+%2B+%26amp%3B', $request->getUrl());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com');
-        self::assertSame('GET', $request->getMethod());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Get);
-        self::assertSame('GET', $request->getMethod());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
-        self::assertSame('POST', $request->getMethod());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Put);
-        self::assertSame('PUT', $request->getMethod());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Patch);
-        self::assertSame('PATCH', $request->getMethod());
-
-        // Simple test
-        $request = new HttpRequest('https://example.com', null, HttpMethod::Delete);
-        self::assertSame('DELETE', $request->getMethod());
+        $body = $request->setUrlencodedBody([])
+            ->setUrlencodedBody(['p1' => '1', 'p2' => '& + &amp;'])
+            ->getBody();
+        self::assertInstanceOf(UrlencodedBody::class, $body);
+        self::assertSame('p1=1&p2=%26+%2B+%26amp%3B', $body->getBody());
+        self::assertSame('application/x-www-form-urlencoded', $body->getContentType());
     }
 
     /**
      * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
      */
-    private function createResponse(
-        string|array|null $expectedContentType = null
-    ): BaseHttpResponse {
+    private function createResponse(string|array|null $expectedContentType = null): BaseHttpResponse
+    {
         $request = new HttpRequest('https://example.com');
         $url = $request->getUrl();
 

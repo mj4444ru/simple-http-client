@@ -23,6 +23,16 @@ final class HttpRequest extends BaseHttpRequest
         ?string $contentType,
         string $response
     ): HttpResponse {
-        return new HttpResponse($this, $httpCode, $url, $effectiveUrl, $redirectUrl, $headers, $contentType, $response);
+        return new HttpResponse(
+            $this,
+            $httpCode,
+            $url,
+            $effectiveUrl,
+            $redirectUrl,
+            $headers,
+            $contentType,
+            $response,
+            $this->expectedContentType
+        );
     }
 }

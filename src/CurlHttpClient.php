@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient;
 
+use CURLFile;
 use CurlHandle;
 use CurlShareHandle;
+use CURLStringFile;
 use LogicException;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FileInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FormInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\StringFileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
@@ -16,9 +23,6 @@ use function count;
 use function is_string;
 use function strlen;
 
-/**
- * @api
- */
 class CurlHttpClient extends BaseHttpClient
 {
     public bool $curlInfoRequired = false;
@@ -35,6 +39,14 @@ class CurlHttpClient extends BaseHttpClient
     }
 
     /**
+     * @return array<int, mixed> Curl options
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
      * @return $this
      */
     public function initShareData(
@@ -47,19 +59,29 @@ class CurlHttpClient extends BaseHttpClient
     ): static {
         $sh = curl_share_init();
         if ($all || $connect) {
-            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
+            if (curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT) === false) {
+                throw new LogicException('Failed to set CURL_LOCK_DATA_CONNECT on curl share handle.');
+            }
         }
         if ($all || $cookie) {
-            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
+            if (curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE) === false) {
+                throw new LogicException('Failed to set CURL_LOCK_DATA_COOKIE on curl share handle.');
+            }
         }
         if ($all || $dns) {
-            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+            if (curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS) === false) {
+                throw new LogicException('Failed to set CURL_LOCK_DATA_DNS on curl share handle.');
+            }
         }
         if ($all || $psl) {
-            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_PSL);
+            if (curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_PSL) === false) {
+                throw new LogicException('Failed to set CURL_LOCK_DATA_PSL on curl share handle.');
+            }
         }
         if ($all || $sslSession) {
-            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+            if (curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION) === false) {
+                throw new LogicException('Failed to set CURL_LOCK_DATA_SSL_SESSION on curl share handle.');
+            }
         }
         $this->setOption(CURLOPT_SHARE, $sh);
 
@@ -92,7 +114,8 @@ class CurlHttpClient extends BaseHttpClient
         }
 
         if ($isPost) {
-            $options[CURLOPT_POSTFIELDS] = $request->getBody() ?? throw new BodyRequiredException($request);
+            $body = $request->getBody() ?? throw new BodyRequiredException($request);
+            $this->preparePost($options, $body);
         }
 
         return $this->execute($options, $request);
@@ -223,6 +246,7 @@ class CurlHttpClient extends BaseHttpClient
         $response = curl_exec($curlHandle);
 
         if ($this->curlInfoRequired) {
+            /** @psalm-suppress MixedAssignment */
             $this->lastCurlInfo = curl_getinfo($curlHandle) ?: [];
         }
 
@@ -266,5 +290,41 @@ class CurlHttpClient extends BaseHttpClient
         $contentType = is_string($_ = curl_getinfo($curlHandle, CURLINFO_CONTENT_TYPE)) ? $_ : null;
 
         return $request->makeResponse($httpCode, $url, $effectiveUrl, $redirectUrl, $headers, $contentType, $response);
+    }
+
+    /**
+     * @param array<int, mixed> $options
+     */
+    protected function preparePost(array &$options, BodyInterface $body): void
+    {
+        $postData = $body->getBody();
+
+        if ($postData instanceof FormInterface) {
+            $fields = $postData->getFields();
+
+            foreach ($fields as &$value) {
+                if ($value instanceof FileInterface) {
+                    $value = new CURLFile($value->getFileName(), $value->getMime(), $value->getPostName());
+                } elseif ($value instanceof StringFileInterface) {
+                    $value = new CURLStringFile($value->getData(), $value->getPostName(), $value->getMime());
+                }
+            }
+
+            $options[CURLOPT_POSTFIELDS] = $fields;
+
+            return;
+        }
+
+        /** @psalm-suppress MixedArrayAssignment */
+        $options[CURLOPT_HTTPHEADER][] = 'Content-Type: ' . ($body->getContentType() ?? '');
+
+
+        if ($postData instanceof BodyReaderInterface) {
+            $options[CURLOPT_INFILESIZE] = $postData->getBytesLeft();
+            $options[CURLOPT_READDATA] = $postData->getResource();
+            $options[CURLOPT_READFUNCTION] = $postData->read(...);
+        } else {
+            $options[CURLOPT_POSTFIELDS] = $postData;
+        }
     }
 }

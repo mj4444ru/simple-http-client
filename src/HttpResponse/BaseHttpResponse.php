@@ -24,6 +24,7 @@ abstract class BaseHttpResponse implements HttpResponseInterface
     /**
      * @param TRequest $request
      * @param array<string, list<string>> $headers
+     * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
      */
     public function __construct(
         public readonly BaseHttpRequest $request,
@@ -33,7 +34,8 @@ abstract class BaseHttpResponse implements HttpResponseInterface
         public readonly ?string $redirectUrl,
         public readonly array $headers,
         public readonly ?string $contentType,
-        public readonly string $body
+        public readonly string $body,
+        public string|array|null $expectedContentType
     ) {
     }
 
@@ -45,7 +47,7 @@ abstract class BaseHttpResponse implements HttpResponseInterface
     public function checkContentType(string|array|null $expectedContentType = null): void
     {
         if ($expectedContentType !== null || !$this->contentTypeValidated) {
-            $expectedContentType ??= $this->request->expectedContentType;
+            $expectedContentType ??= $this->expectedContentType;
 
             if ($expectedContentType !== null) {
                 $contentType = $this->contentType !== null ? strtolower($this->contentType) : null;
@@ -136,5 +138,16 @@ abstract class BaseHttpResponse implements HttpResponseInterface
     public function getUrl(): string
     {
         return $this->url;
+    }
+
+    /**
+     * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
+     * @return $this
+     */
+    public function setExpectedContentType(array|string|null $expectedContentType): static
+    {
+        $this->expectedContentType = $expectedContentType;
+
+        return $this;
     }
 }

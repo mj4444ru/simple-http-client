@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body;
 
-use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
 
-final class NoBody implements HttpRequestBodyInterface
+final class NoBody implements BodyInterface
 {
     public function getBody(): string
     {
@@ -16,7 +16,7 @@ final class NoBody implements HttpRequestBodyInterface
     /**
      * @inheritDoc
      */
-    public function getBodyContentType(): null
+    public function getContentType(): null
     {
         return null;
     }

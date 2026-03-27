@@ -6,9 +6,6 @@ namespace Mj4444\SimpleHttpClient;
 
 use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
 
-/**
- * @api
- */
 abstract class BaseHttpClient implements HttpClientInterface
 {
     public bool $followLocation = false;

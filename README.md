@@ -63,32 +63,53 @@ echo PHP_EOL . $responseBody . PHP_EOL . PHP_EOL;
 #### Get request with query
 
 ```php
+use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
+
 $request = new HttpRequest('http://www.google.com/search?q=demo');
 ```
 
 ```php
+use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
+
 $request = new HttpRequest('http://www.google.com/search', ['q' => 'demo']);
 ```
 
 #### Post request
 
 ```php
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartBody\File;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\MultipartBody\StringFile;
+use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
+use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
+
 $request = new HttpRequest('http://www.google.com', null, HttpMethod::Post);
 
 $request->setUrlencodedBody(['q' => 'demo']);
 
+$request->setMultipartFormBody([
+    'field1' => 'value1',
+    'field2' => 2,
+    'field3' => new File($fileName, $postName, $mime),
+    'field4' => new StringFile($data, $postName, $mime),
+]);
+
 $request->setJsonBody('demo');
+
+$request->setStringBody(http_build_query(['q' => 'demo']), 'application/x-www-form-urlencoded');
 
 $request->setNoBody();
 
-$request->setBody(http_build_query(['q' => 'demo']))
-    ->setContentType('application/x-www-form-urlencoded');
+$request->setFileBody(...);
+
+$request->setStreamBody(...);
 ```
 
 #### Json client
 
 ```php
 use Mj4444\SimpleHttpClient\CurlHttpClient;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\NoBody;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\UrlencodedBody;
 use Mj4444\SimpleHttpClient\JsonHttpClient;
 
 $client = new JsonHttpClient(new CurlHttpClient());

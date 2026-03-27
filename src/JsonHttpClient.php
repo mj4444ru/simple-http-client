@@ -5,17 +5,14 @@ declare(strict_types=1);
 namespace Mj4444\SimpleHttpClient;
 
 use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
-use Mj4444\SimpleHttpClient\Contracts\HttpRequestBodyInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
 use Mj4444\SimpleHttpClient\Exceptions\HttpClientException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\HttpException;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
 use Mj4444\SimpleHttpClient\HttpRequest\JsonHttpRequest;
 use Mj4444\SimpleHttpClient\HttpResponse\JsonHttpResponse;
 
-/**
- * @api
- */
-class JsonHttpClient
+final class JsonHttpClient
 {
     /**
      * @var int|non-empty-array<int>|null
@@ -52,7 +49,7 @@ class JsonHttpClient
      * @param non-empty-string $header
      * @return $this
      */
-    public function addHeader(string $header): static
+    public function addHeader(string $header): self
     {
         $this->headers[] = $header;
 
@@ -183,7 +180,7 @@ class JsonHttpClient
      * @param int|non-empty-array<int>|null $allowedHttpCode
      * @return $this
      */
-    public function setAllowedHttpCode(int|array|null $allowedHttpCode): static
+    public function setAllowedHttpCode(int|array|null $allowedHttpCode): self
     {
         $this->allowedHttpCode = $allowedHttpCode;
 
@@ -194,7 +191,7 @@ class JsonHttpClient
      * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
      * @return $this
      */
-    public function setExpectedContentType(array|string|null $expectedContentType): static
+    public function setExpectedContentType(array|string|null $expectedContentType): self
     {
         $this->expectedContentType = $expectedContentType;
 
@@ -205,7 +202,7 @@ class JsonHttpClient
      * @param non-empty-string|null $header
      * @return $this
      */
-    public function setHeader(string|int $index, ?string $header): static
+    public function setHeader(string|int $index, ?string $header): self
     {
         if ($header === null) {
             unset($this->headers[$index]);
@@ -220,7 +217,7 @@ class JsonHttpClient
      * @param non-empty-string[] $headers
      * @return $this
      */
-    public function setHeaders(array $headers): static
+    public function setHeaders(array $headers): self
     {
         $this->headers = $headers;
 
@@ -231,7 +228,7 @@ class JsonHttpClient
      * @param non-empty-string|null $requestAccept
      * @return $this
      */
-    public function setRequestAccept(?string $requestAccept): static
+    public function setRequestAccept(?string $requestAccept): self
     {
         $this->requestAccept = $requestAccept;
 
@@ -242,7 +239,7 @@ class JsonHttpClient
      * @param non-empty-string|null $requestContentType
      * @return $this
      */
-    public function setRequestContentType(?string $requestContentType): static
+    public function setRequestContentType(?string $requestContentType): self
     {
         $this->requestContentType = $requestContentType;
 
@@ -252,7 +249,7 @@ class JsonHttpClient
     /**
      * @return $this
      */
-    public function setResponseHeadersRequired(?bool $responseHeadersRequired = true): static
+    public function setResponseHeadersRequired(?bool $responseHeadersRequired = true): self
     {
         $this->responseHeadersRequired = $responseHeadersRequired;
 
@@ -311,7 +308,7 @@ class JsonHttpClient
             ->setExpectedContentType($this->expectedContentType)
             ->setResponseHeadersRequired($this->responseHeadersRequired);
 
-        if ($body instanceof HttpRequestBodyInterface) {
+        if ($body instanceof BodyInterface) {
             $request->setBody($body);
         } else {
             $request->setJsonBody($body, $this->requestContentType);

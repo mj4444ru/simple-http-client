@@ -23,9 +23,8 @@ use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\UnexpectedContentTypeExcepti
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
 use Mj4444\SimpleHttpClient\HttpResponse\HttpResponse;
 
-/**
- * @api
- */
+use function sprintf;
+
 final class HttpResponseTest extends Unit
 {
     public function testCheckContentType(): void
@@ -361,6 +360,24 @@ final class HttpResponseTest extends Unit
         // Simple test
         $response = $this->createResponse();
         self::assertSame('https://example.com', $response->getUrl());
+    }
+
+    public function testSetExpectedContentType(): void
+    {
+        // Simple test
+        $response = $this->createResponse();
+        $response->setExpectedContentType('text/plain');
+        self::assertSame('text/plain', $response->expectedContentType);
+
+        // Simple test
+        $response = $this->createResponse();
+        $response->setExpectedContentType(['text/html', 'text/plain']);
+        self::assertSame(['text/html', 'text/plain'], $response->expectedContentType);
+
+        // Simple test
+        $response = $this->createResponse(expectedContentType: 'text/html');
+        $response->setExpectedContentType(null);
+        self::assertNull($response->expectedContentType);
     }
 
     /**

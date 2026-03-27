@@ -11,6 +11,6 @@ final class JsonDecodeException extends ParseDataException
 {
     public function __construct(HttpResponseInterface $response, ?JsonException $previous = null)
     {
-        parent::__construct('Not valid json.', 0, $response, $previous);
+        parent::__construct('JSON decode error.', 0, $response, $previous);
     }
 }
