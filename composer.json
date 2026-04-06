@@ -30,9 +30,10 @@
     },
     "require-dev": {
         "ext-curl": "*",
-        "codeception/codeception": "^5.3.2",
+        "codeception/codeception": "^5.3",
         "codeception/module-phpbrowser": "*",
-        "codeception/module-asserts": "*"
+        "codeception/module-asserts": "*",
+        "vimeo/psalm": "^6.16"
     },
     "config": {
         "sort-packages": true

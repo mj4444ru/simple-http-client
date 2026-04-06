@@ -21,7 +21,7 @@ final readonly class File implements FileInterface
     }
 
     /**
-     * @return non-empty-string
+     * @inheritDoc
      */
     public function getFileName(): string
     {
@@ -29,7 +29,7 @@ final readonly class File implements FileInterface
     }
 
     /**
-     * @return non-empty-string
+     * @inheritDoc
      */
     public function getMime(): string
     {
@@ -37,7 +37,7 @@ final readonly class File implements FileInterface
     }
 
     /**
-     * @return non-empty-string
+     * @inheritDoc
      */
     public function getPostName(): string
     {

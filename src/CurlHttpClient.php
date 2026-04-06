@@ -15,6 +15,7 @@ use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FormInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\StringFileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequestTimeoutInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
@@ -116,6 +117,23 @@ class CurlHttpClient extends BaseHttpClient
         if ($isPost) {
             $body = $request->getBody() ?? throw new BodyRequiredException($request);
             $this->preparePost($options, $body);
+        }
+
+        if ($request instanceof HttpRequestTimeoutInterface) {
+            if (($connectTimeout = $request->getConnectTimeout()) !== null) {
+                if ($connectTimeout > 0) {
+                    $options[CURLOPT_CONNECTTIMEOUT] = $connectTimeout;
+                } else {
+                    unset($options[CURLOPT_CONNECTTIMEOUT]);
+                }
+            }
+            if (($timeout = $request->getTimeout()) !== null) {
+                if ($timeout > 0) {
+                    $options[CURLOPT_TIMEOUT] = $timeout;
+                } else {
+                    unset($options[CURLOPT_TIMEOUT]);
+                }
+            }
         }
 
         return $this->execute($options, $request);

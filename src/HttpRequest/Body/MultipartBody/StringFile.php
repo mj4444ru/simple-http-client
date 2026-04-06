@@ -26,7 +26,7 @@ final readonly class StringFile implements StringFileInterface
     }
 
     /**
-     * @return non-empty-string
+     * @inheritDoc
      */
     public function getMime(): string
     {
@@ -34,7 +34,7 @@ final readonly class StringFile implements StringFileInterface
     }
 
     /**
-     * @return non-empty-string
+     * @inheritDoc
      */
     public function getPostName(): string
     {
