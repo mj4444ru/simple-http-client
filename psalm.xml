@@ -20,12 +20,17 @@
     </projectFiles>
     <issueHandlers>
         <ClassMustBeFinal errorLevel="suppress" />
-        <MissingOverrideAttribute errorLevel="suppress" />
-        <PossiblyUnusedMethod>
+        <InternalClass>
             <errorLevel type="suppress">
-                <directory name="src/Exceptions" />
+                <directory name="tests/Unit" />
             </errorLevel>
-        </PossiblyUnusedMethod>
+        </InternalClass>
+        <InternalMethod>
+            <errorLevel type="suppress">
+                <directory name="tests/Unit" />
+            </errorLevel>
+        </InternalMethod>
+        <MissingOverrideAttribute errorLevel="suppress" />
         <UnusedClass>
             <errorLevel type="suppress">
                 <directory name="tests/Unit" />

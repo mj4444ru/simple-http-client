@@ -340,6 +340,9 @@ class CurlHttpClient extends BaseHttpClient
         if ($postData instanceof BodyReaderInterface) {
             $options[CURLOPT_INFILESIZE] = $postData->getBytesLeft();
             $options[CURLOPT_READFUNCTION] =
+                /**
+                 * @param positive-int $maxBytesToRead
+                 */
                 static fn(mixed $p1, mixed $p2, int $maxBytesToRead): string => $postData->read($maxBytesToRead);
         } else {
             $options[CURLOPT_POSTFIELDS] = $postData;

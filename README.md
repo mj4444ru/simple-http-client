@@ -1,11 +1,8 @@
 # Simple Http Client
 
-> [!NOTE]
-> To use this software, make a copy of this package into your project.
-
 > [!WARNING]
-> The software is under development.
-> It is strongly not recommended to connect it to yourself via composer or any other way.
+> Versions of this package earlier than "v1" may be incompatible.
+> When connecting, please specify the exact package version to avoid automatic updates.
 
 ## Installation
 
@@ -53,7 +50,7 @@ $responseEffectiveUrl = $response->getEffectiveUrl();
 $responseContentType = $response->getContentType();
 $responseBody = $response->getBody();
 
-echo $responseHttpCode .  PHP_EOL;
+echo $responseHttpCode . PHP_EOL;
 echo $responseUrl . PHP_EOL;
 echo $responseEffectiveUrl . PHP_EOL;
 echo $responseContentType . PHP_EOL;
@@ -102,9 +99,11 @@ $request->setNoBody();
 $request->setFileBody(...);
 
 $request->setStreamBody(...);
+
+$request->setStringStreamBody(...);
 ```
 
-#### Json client
+#### JSON client
 
 ```php
 use Mj4444\SimpleHttpClient\CurlHttpClient;
@@ -122,6 +121,20 @@ $data = $client->post('https://example.com', new NoBody());
 
 $data = $client->post('https://example.com', new UrlencodedBody([['q' => 'demo']]));
 ```
+
+## Supported Body
+
+- [FileBody](src/HttpRequest/Body/FileBody.php)
+- [JsonBody](src/HttpRequest/Body/JsonBody.php)
+- [MultipartFormBody](src/HttpRequest/Body/MultipartFormBody.php)
+    - [File](src/HttpRequest/Body/MultipartBody/File.php)
+    - [StringFile](src/HttpRequest/Body/MultipartBody/StringFile.php)
+- [NoBody](src/HttpRequest/Body/NoBody.php)
+- [StreamBody](src/HttpRequest/Body/StreamBody.php)
+- [StringBody](src/HttpRequest/Body/StringBody.php)
+- [StringStreamBody](src/HttpRequest/Body/StringStreamBody.php)
+- [UrlencodedBody](src/HttpRequest/Body/UrlencodedBody.php)
+- Your Body Implementations
 
 ## Run tests
 

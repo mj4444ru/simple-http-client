@@ -8,8 +8,15 @@ use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 
 use function sprintf;
 
+/**
+ * @internal
+ */
 final class FileReader extends StreamReader
 {
+    /**
+     * @param non-empty-string $fileName
+     * @param non-negative-int $offset
+     */
     public function __construct(
         string $fileName,
         int $offset = 0,

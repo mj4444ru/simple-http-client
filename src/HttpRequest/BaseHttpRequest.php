@@ -171,6 +171,7 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * @param non-empty-string $fileName
      * @param non-empty-string|null $contentType
      * @param non-negative-int $offset
      * @return $this
@@ -307,7 +308,7 @@ abstract class BaseHttpRequest implements HttpRequestInterface
      * @return $this
      */
     public function setStreamBody(
-        $resource,
+        mixed $resource,
         ?string $contentType = null,
         ?int $offset = null,
         ?int $length = null
@@ -322,6 +323,21 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     public function setStringBody(string $value, ?string $contentType = null): static
     {
         return $this->setBody(new StringBody($value, $contentType));
+    }
+
+    /**
+     * @param resource $resource
+     * @param non-empty-string|null $contentType
+     * @param non-negative-int|null $offset
+     * @return $this
+     */
+    public function setStringStreamBody(
+        mixed $resource,
+        ?string $contentType = null,
+        ?int $offset = null,
+        ?int $length = null
+    ): static {
+        return $this->setBody(new StreamBody($resource, $contentType, $offset, $length));
     }
 
     /**

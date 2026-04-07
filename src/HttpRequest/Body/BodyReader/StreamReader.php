@@ -4,97 +4,86 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
-use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 use Throwable;
 
 use function is_int;
-use function strlen;
 
-class StreamReader implements BodyReaderInterface
+/**
+ * @internal
+ */
+class StreamReader extends BaseReader
 {
-    private int $bytesLeft = 0;
-
     /**
      * @param resource $resource
      * @param non-negative-int|null $offset
      */
     public function __construct(
-        protected readonly mixed $resource,
+        private readonly mixed $resource,
         ?int $offset = null,
         ?int $length = null
     ) {
-        if ($offset !== null) {
-            if ($offset < 0) {
-                throw new ReaderException('Stream offset cannot be negative.');
-            }
-            $this->checkSeekable();
-            if (fseek($this->resource, $offset) !== 0) {
-                throw new ReaderException('Invalid offset for stream.');
-            }
-        }
+        parent::__construct($offset, $length);
+    }
 
+    /**
+     * @inheritDoc
+     */
+    protected function calcBytesLeft(?int $offset, ?int $length): int
+    {
         if ($length !== null && $length >= 0) {
-            $this->bytesLeft = $length;
+            $bytesLeft = $length;
         } else {
             if ($offset === null) {
                 $this->checkSeekable();
-                $pos = ftell($resource);
+                $pos = @ftell($this->resource);
                 if ($pos === false) {
-                    throw new ReaderException('Stream seekable is not available.');
+                    throw new ReaderException('Unable to determine stream position.');
                 }
                 $offset = $pos;
             }
 
             $stat = @fstat($this->resource);
             if ($stat === false || !is_int($size = $stat['size'] ?? null)) {
-                if (@fseek($resource, 0, SEEK_END) !== 0) {
-                    throw new ReaderException('Stream seekable is not available.');
+                if (@fseek($this->resource, 0, SEEK_END) !== 0) {
+                    throw new ReaderException('Unable to seek to end of stream.');
                 }
-                $size = @ftell($resource);
+                $size = @ftell($this->resource);
                 if ($size === false) {
-                    throw new ReaderException('Stream seekable is not available.');
+                    throw new ReaderException('Unable to determine stream position.');
                 }
-                if (@fseek($resource, $offset) !== 0) {
-                    throw new ReaderException('Stream seekable is not available.');
+                if (@fseek($this->resource, $offset) !== 0) {
+                    throw new ReaderException('Unable to seek to original stream position.');
                 }
             }
 
-            $this->bytesLeft = $length === null
+            $bytesLeft = $length === null
                 ? $size - $offset
                 : $size - $offset + $length;
 
-            if ($this->bytesLeft < 0) {
+            if ($bytesLeft < 0) {
                 throw new ReaderException('A negative data length value was received.');
             }
         }
-    }
 
-    public function getBytesLeft(): int
-    {
-        return $this->bytesLeft;
+        return $bytesLeft;
     }
 
     /**
      * @inheritDoc
      */
-    public function read(int $maxBytesToRead): string
+    protected function readBytes(int $bytesToRead): string|false
     {
-        if ($this->bytesLeft === 0) {
-            return '';
+        return @fread($this->resource, $bytesToRead);
+    }
+
+    protected function setOffset(int $offset): void
+    {
+        $this->checkSeekable();
+
+        if (fseek($this->resource, $offset) !== 0) {
+            throw new ReaderException('Invalid offset.');
         }
-
-        $bytesToRead = max(min($maxBytesToRead, $this->bytesLeft), 0);
-
-        $this->bytesLeft -= $bytesToRead;
-
-        $content = @fread($this->resource, $bytesToRead);
-
-        if ($content === false || strlen($content) < $bytesToRead) {
-            throw new ReaderException('File content is too short.');
-        }
-
-        return $content;
     }
 
     private function checkSeekable(): void

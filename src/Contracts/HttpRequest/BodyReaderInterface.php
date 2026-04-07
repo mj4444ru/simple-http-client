@@ -6,6 +6,9 @@ namespace Mj4444\SimpleHttpClient\Contracts\HttpRequest;
 
 interface BodyReaderInterface
 {
+    /**
+     * @return non-negative-int
+     */
     public function getBytesLeft(): int;
 
     /**

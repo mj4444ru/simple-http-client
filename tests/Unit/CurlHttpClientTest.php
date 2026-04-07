@@ -8,6 +8,7 @@ use Codeception\Test\Unit;
 use CurlShareHandle;
 use Mj4444\SimpleHttpClient\CurlHttpClient;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
 use Mj4444\SimpleHttpClient\HttpResponse\HttpResponse;
@@ -16,6 +17,21 @@ use function sprintf;
 
 final class CurlHttpClientTest extends Unit
 {
+    public function testBodyRequiredException(): void
+    {
+        // Simple test
+        $client = new CurlHttpClient();
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        try {
+            $client->request($request);
+            self::failException(BodyRequiredException::class);
+        } catch (BodyRequiredException $e) {
+            self::assertSame('Body required.', $e->getMessage());
+            self::assertSame($request, $e->getRequest());
+        }
+    }
+
     public function testGetOptions(): void
     {
         // Simple test

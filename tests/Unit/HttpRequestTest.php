@@ -131,11 +131,59 @@ final class HttpRequestTest extends Unit
         self::assertSame('https://example.com', $request->getUrl());
     }
 
+    public function testIsPost(): void
+    {
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Get);
+        self::assertFalse($request->isPost());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+        self::assertTrue($request->isPost());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Put);
+        self::assertTrue($request->isPost());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Patch);
+        self::assertTrue($request->isPost());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Delete);
+        self::assertFalse($request->isPost());
+    }
+
     public function testIsResponseHeadersRequired(): void
     {
         // Simple test
         $request = new HttpRequest('https://example.com');
         self::assertNull($request->isResponseHeadersRequired());
+    }
+
+    public function testMakeResponse(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com');
+        $request->setExpectedContentType('text/html');
+
+        // Complex test
+        $response = $request->makeResponse(
+            200,
+            'https://example.com',
+            'https://example.com/final',
+            'https://example.com/redirect',
+            ['Content-Type' => ['text/html'], 'X-Custom' => ['value']],
+            'text/html',
+            '<html>Response</html>'
+        );
+        self::assertSame(200, $response->getHttpCode());
+        self::assertSame('https://example.com', $response->getUrl());
+        self::assertSame('https://example.com/final', $response->getEffectiveUrl());
+        self::assertSame('https://example.com/redirect', $response->getRedirectUrl());
+        self::assertSame(['Content-Type' => ['text/html'], 'X-Custom' => ['value']], $response->getHeaders());
+        self::assertSame('text/html', $response->getContentType());
+        self::assertSame('<html>Response</html>', $response->getBody());
     }
 
     public function testSetAccept(): void
@@ -263,18 +311,22 @@ final class HttpRequestTest extends Unit
 
         // Complex test
         self::assertNull($request->followLocation);
+        self::assertNull($request->isFollowLocation());
 
         // Complex test
         $request->setFollowLocation(true);
         self::assertTrue($request->followLocation);
+        self::assertTrue($request->isFollowLocation());
 
         // Complex test
         $request->setFollowLocation(false);
         self::assertFalse($request->followLocation);
+        self::assertFalse($request->isFollowLocation());
 
         // Complex test
         $request->setFollowLocation(null);
         self::assertNull($request->followLocation);
+        self::assertNull($request->isFollowLocation());
     }
 
     public function testSetHeader(): void
@@ -579,6 +631,42 @@ final class HttpRequestTest extends Unit
         self::assertInstanceOf(StringBody::class, $body);
         self::assertSame('test content', $body->getBody());
         self::assertEquals('text/plain', $body->getContentType());
+    }
+
+    public function testSetStringStreamBody(): void
+    {
+        // Prepare complex tests
+        $request = new HttpRequest('https://example.com', null, HttpMethod::Post);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStringStreamBody($resource)->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertNull($body->getContentType());
+        self::assertNull($body->offset);
+        self::assertNull($body->length);
+        fclose($resource);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStringStreamBody($resource, 'application/octet-stream')->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertEquals('application/octet-stream', $body->getContentType());
+        self::assertNull($body->offset);
+        self::assertNull($body->length);
+        fclose($resource);
+
+        // Complex test
+        /** @var resource $resource */
+        $resource = fopen('php://temp', 'rb+');
+        $body = $request->setStringStreamBody($resource, 'application/octet-stream', 0, 100)->getBody();
+        self::assertInstanceOf(StreamBody::class, $body);
+        self::assertEquals('application/octet-stream', $body->getContentType());
+        self::assertEquals(0, $body->offset);
+        self::assertEquals(100, $body->length);
+        fclose($resource);
     }
 
     public function testSetUrl(): void

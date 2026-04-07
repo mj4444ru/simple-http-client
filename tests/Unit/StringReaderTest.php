@@ -6,29 +6,24 @@ namespace Unit;
 
 use Codeception\Test\Unit;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
-use Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader\StreamReader;
+use Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader\StringReader;
 use Random\RandomException;
 
 use function sprintf;
 use function strlen;
 
-final class StreamReaderTest extends Unit
+final class StringReaderTest extends Unit
 {
     public function testGetBytesLeft(): void
     {
         // Simple test
-        $resource = fopen('php://temp', 'rb+');
-        self::assertNotFalse($resource);
-        fwrite($resource, 'test content');
-        rewind($resource);
-        $reader = new StreamReader($resource);
+        $reader = new StringReader('test content');
         self::assertSame(12, $reader->getBytesLeft());
         self::assertSame(10, strlen($reader->read(10)));
         self::assertSame(2, $reader->getBytesLeft());
         self::assertSame(2, strlen($reader->read(10)));
         self::assertSame(0, $reader->getBytesLeft());
         self::assertSame(0, strlen($reader->read(10)));
-        fclose($resource);
     }
 
     /**
@@ -67,14 +62,6 @@ final class StreamReaderTest extends Unit
 
         // Simple test
         try {
-            $this->testReadWithParams($bytes, substr($bytes, 500), 600, 500);
-            self::failException(ReaderException::class);
-        } catch (ReaderException $e) {
-            self::assertSame('Not enough data to read.', $e->getMessage());
-        }
-
-        // Simple test
-        try {
             $this->testReadWithParams($bytes, '', 500, -600);
             self::failException(ReaderException::class);
         } catch (ReaderException $e) {
@@ -108,33 +95,24 @@ final class StreamReaderTest extends Unit
     ): void {
         $expectedByteCount = strlen($expectedBytes);
 
-        $resource = fopen('php://temp', 'rb+');
-        self::assertNotFalse($resource);
-        try {
-            fwrite($resource, $bytes);
-            rewind($resource);
+        $reader = new StringReader($bytes, $offset ?? 0, $length);
 
-            $reader = new StreamReader($resource, $offset, $length);
-
-            $readData = '';
-            while (strlen($readData) < $expectedByteCount) {
-                $rd = $reader->read(300);
-                $readData .= $rd;
-
-                if (strlen($readData) < $expectedByteCount) {
-                    self::assertEquals(min(300, $expectedByteCount - strlen($readData) + strlen($rd)), strlen($rd));
-                }
-            }
-
-            self::assertEquals(strlen($readData), $expectedByteCount);
-            self::assertSame($readData, $expectedBytes);
-
+        $readData = '';
+        while (strlen($readData) < $expectedByteCount) {
             $rd = $reader->read(300);
-            self::assertEquals(0, strlen($rd));
+            $readData .= $rd;
 
-            self::assertEquals(0, $reader->getBytesLeft());
-        } finally {
-            fclose($resource);
+            if (strlen($readData) < $expectedByteCount) {
+                self::assertEquals(min(300, $expectedByteCount - strlen($readData) + strlen($rd)), strlen($rd));
+            }
         }
+
+        self::assertEquals(strlen($readData), $expectedByteCount);
+        self::assertSame($readData, $expectedBytes);
+
+        $rd = $reader->read(300);
+        self::assertEquals(0, strlen($rd));
+
+        self::assertEquals(0, $reader->getBytesLeft());
     }
 }

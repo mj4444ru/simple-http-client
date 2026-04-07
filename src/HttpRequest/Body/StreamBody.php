@@ -15,7 +15,7 @@ final class StreamBody implements BodyInterface
      * @param non-negative-int|null $offset
      */
     public function __construct(
-        public $resource,
+        public mixed $resource,
         public ?string $contentType = null,
         public ?int $offset = null,
         public ?int $length = null
