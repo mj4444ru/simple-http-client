@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
-use CurlHandle;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 use Throwable;
@@ -18,9 +17,10 @@ class StreamReader implements BodyReaderInterface
 
     /**
      * @param resource $resource
+     * @param non-negative-int|null $offset
      */
     public function __construct(
-        protected $resource,
+        protected readonly mixed $resource,
         ?int $offset = null,
         ?int $length = null
     ) {
@@ -75,21 +75,16 @@ class StreamReader implements BodyReaderInterface
         return $this->bytesLeft;
     }
 
-    public function getResource(): null
-    {
-        return null;
-    }
-
     /**
      * @inheritDoc
      */
-    public function read(CurlHandle $curlHandle, $streamResource, int $maxAmountOfDataToRead): string
+    public function read(int $maxBytesToRead): string
     {
         if ($this->bytesLeft === 0) {
             return '';
         }
 
-        $bytesToRead = max(min($maxAmountOfDataToRead, $this->bytesLeft), 0);
+        $bytesToRead = max(min($maxBytesToRead, $this->bytesLeft), 0);
 
         $this->bytesLeft -= $bytesToRead;
 

@@ -37,8 +37,7 @@ final class FileReaderTest extends Unit
         $reader = new FileReader(__FILE__, 100, -100);
         /** @noinspection PhpConditionAlreadyCheckedInspection */
         self::assertInstanceOf(FileReader::class, $reader);
-        /** @psalm-suppress PossiblyFalseArgument */
-        $content = $reader->read(curl_init(), $reader->getResource(), filesize(__FILE__));
+        $content = $reader->read(filesize(__FILE__));
         /** @psalm-suppress PossiblyFalseArgument */
         self::assertSame($content, substr(file_get_contents(__FILE__), 100, -100));
     }
@@ -65,27 +64,14 @@ final class FileReaderTest extends Unit
         self::assertSame(100, $reader->getBytesLeft());
     }
 
-    public function testGetResource(): void
-    {
-        // Simple test
-        $reader = new FileReader(__FILE__);
-        self::assertNull($reader->getResource());
-    }
-
     public function testRead(): void
     {
         // Simple test
         $reader = new FileReader(__FILE__);
 
-        $curlHandle = curl_init();
-        self::assertNotFalse($curlHandle);
-
-        /** @psalm-suppress PossiblyFalseArgument */
-        $data = $reader->read($curlHandle, $reader->getResource(), filesize(__FILE__));
+        $data = $reader->read(filesize(__FILE__));
         self::assertStringEqualsFile(__FILE__, $data);
         self::assertSame(0, $reader->getBytesLeft());
-
-        curl_close($curlHandle);
     }
 
     /**
