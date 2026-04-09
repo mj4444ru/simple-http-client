@@ -23,7 +23,7 @@ final class DebugHttpClient implements HttpClientInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @template TResponse of HttpResponseInterface
      * @param HttpRequestInterface<TResponse> $request
@@ -38,7 +38,6 @@ final class DebugHttpClient implements HttpClientInterface
         self::$globalLastResponse = null;
 
         $response = $this->parent->request($request);
-
 
         if ($this->isDebug) {
             $this->lastResponse = $response;

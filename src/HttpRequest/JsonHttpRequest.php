@@ -24,9 +24,6 @@ final class JsonHttpRequest extends BaseHttpRequest
         'application/json',
     ];
 
-    /**
-     * @inheritDoc
-     */
     public function makeResponse(
         int $httpCode,
         string $url,

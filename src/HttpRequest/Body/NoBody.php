@@ -13,9 +13,6 @@ final class NoBody implements BodyInterface
         return '';
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentType(): null
     {
         return null;

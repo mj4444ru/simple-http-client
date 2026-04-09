@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest;
 
+use InvalidArgumentException;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\StringFileInterface;
@@ -19,6 +20,7 @@ use Mj4444\SimpleHttpClient\HttpRequest\Body\UrlencodedBody;
 use Mj4444\SimpleHttpClient\HttpResponse\BaseHttpResponse;
 
 use function in_array;
+use function sprintf;
 
 /**
  * @template TResponse of BaseHttpResponse
@@ -31,6 +33,10 @@ abstract class BaseHttpRequest implements HttpRequestInterface
      */
     public ?string $accept = null;
     public BodyInterface|null $body = null;
+    /**
+     * @var non-negative-int|false|null
+     */
+    public int|false|null $connectTimeout = null;
     /**
      * @var lowercase-string|non-empty-array<lowercase-string|null>|null
      */
@@ -45,6 +51,10 @@ abstract class BaseHttpRequest implements HttpRequestInterface
      */
     public ?int $maxRedirects = null;
     public ?bool $responseHeadersRequired = null;
+    /**
+     * @var non-negative-int|false|null
+     */
+    public int|false|null $timeout = null;
 
     /**
      * @param non-empty-string $url
@@ -58,6 +68,45 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * @param non-negative-int $length
+     * @return $this
+     */
+    public function addContentLengthHeader(int $length): static
+    {
+        /** @psalm-suppress DocblockTypeContradiction */
+        if ($length < 0) {
+            throw new InvalidArgumentException('Invalid value for $length argument.');
+        }
+
+        $this->headers['content-length'] = sprintf('Content-Length: %d', $length);
+
+        return $this;
+    }
+
+    /**
+     * @param non-negative-int $rangeStart
+     * @param non-negative-int $rangeEnd
+     * @param positive-int $size
+     * @return $this
+     */
+    public function addContentRangeHeader(int $rangeStart, int $rangeEnd, int $size): static
+    {
+        /** @psalm-suppress DocblockTypeContradiction */
+        if ($rangeStart < 0 || $rangeEnd < 0 || $rangeStart > $rangeEnd) {
+            throw new InvalidArgumentException('Invalid values for $rangeStart or $rangeEnd argument.');
+        }
+        if ($rangeEnd >= $size) {
+            throw new InvalidArgumentException('The $rangeEnd argument must be less than the $size argument.');
+        }
+
+        $this->headers['content-range'] = sprintf('Content-Range: bytes %d-%d/%d', $rangeStart, $rangeEnd, $size);
+        /** @psalm-suppress InvalidArgument */
+        $this->addContentLengthHeader($rangeEnd - $rangeStart + 1);
+
+        return $this;
+    }
+
+    /**
      * @param non-empty-string $header
      * @return $this
      */
@@ -68,14 +117,44 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         return $this;
     }
 
+    /**
+     * @param non-negative-int|null $rangeStart
+     * @param non-negative-int|null $rangeEnd
+     * @return $this
+     */
+    public function addRangeHeader(?int $rangeStart = null, ?int $rangeEnd = null): static
+    {
+        if ($rangeStart === null && $rangeEnd === null) {
+            throw new InvalidArgumentException('At least one non-null argument must be passed.');
+        }
+        if ($rangeStart !== null && $rangeStart < 0) {
+            throw new InvalidArgumentException('Invalid value for $rangeStart argument.');
+        }
+        if ($rangeEnd !== null && $rangeEnd < 0) {
+            throw new InvalidArgumentException('Invalid value for $rangeEnd argument.');
+        }
+        if ($rangeStart !== null && $rangeEnd !== null && $rangeStart > $rangeEnd) {
+            throw new InvalidArgumentException('The $rangeEnd argument cannot be less than the $rangeStart argument.');
+        }
+
+        $this->headers['range'] = sprintf('Range: bytes=%s-%s', $rangeStart ?? '', $rangeEnd ?? '');
+
+        return $this;
+    }
+
     public function getBody(): BodyInterface|null
     {
         return $this->body;
     }
 
     /**
-     * @inheritDoc
+     * Returns the connection timeout in **milliseconds**.
      */
+    public function getConnectTimeout(): int|false|null
+    {
+        return $this->connectTimeout;
+    }
+
     public function getHeaders(): array
     {
         $headers = array_filter($this->headers);
@@ -88,25 +167,21 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         return $headers;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getMaxRedirects(): ?int
     {
         return $this->maxRedirects;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getMethod(): string
     {
         return $this->method->value;
     }
 
-    /**
-     * @inheritDoc
-     */
+    public function getTimeout(): int|false|null
+    {
+        return $this->timeout;
+    }
+
     public function getUrl(): string
     {
         $url = $this->url;
@@ -160,6 +235,21 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Sets the connection timeout in **milliseconds**.
+     *
+     * @param non-negative-int|false|null $connectTimeout The number of **milliseconds** to wait while trying to
+     *     connect. Use `0` to wait indefinitely. Set to `null` to use the client default.
+     *     Set `false` to explicitly unset the timeout, meaning any value set on this client will be reset.
+     * @return $this
+     */
+    public function setConnectTimeout(int|false|null $connectTimeout): static
+    {
+        $this->connectTimeout = $connectTimeout;
+
+        return $this;
+    }
+
+    /**
      * @param lowercase-string|non-empty-array<lowercase-string|null>|null $expectedContentType
      * @return $this
      */
@@ -186,6 +276,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Enables or disables following HTTP redirects.
+     *
      * @return $this
      */
     public function setFollowLocation(?bool $followLocation): static
@@ -207,6 +299,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Replaces all HTTP headers.
+     *
      * @param non-empty-string[] $headers
      * @return $this
      */
@@ -227,6 +321,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Sets the maximum number of HTTP redirects to follow.
+     *
      * @param int<-1, max>|null $maxRedirects
      * @return $this
      */
@@ -265,6 +361,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Sets the query parameters to be appended to the request URL.
+     *
      * @param array<string|int|list<string|int>>|null $query
      * @return $this
      */
@@ -276,6 +374,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Sets the Referer header from a URL, request, or response.
+     *
      * @return $this
      */
     public function setReferer(string|HttpRequestInterface|HttpResponseInterface $referer): static
@@ -292,6 +392,8 @@ abstract class BaseHttpRequest implements HttpRequestInterface
     }
 
     /**
+     * Enables or disables capturing of response headers.
+     *
      * @return $this
      */
     public function setResponseHeadersRequired(?bool $value = true): static
@@ -338,6 +440,21 @@ abstract class BaseHttpRequest implements HttpRequestInterface
         ?int $length = null
     ): static {
         return $this->setBody(new StreamBody($resource, $contentType, $offset, $length));
+    }
+
+    /**
+     * Sets the request timeout in **milliseconds**.
+     *
+     * @param non-negative-int|false|null $timeout The maximum number of **milliseconds** that a request can run.
+     *     Use `0` to wait indefinitely. Set to `null` to use the client default.
+     *     Set `false` to explicitly unset the timeout, meaning any value set on this client will be reset.
+     * @return $this
+     */
+    public function setTimeout(int|false|null $timeout): static
+    {
+        $this->timeout = $timeout;
+
+        return $this;
     }
 
     /**

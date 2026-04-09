@@ -22,9 +22,6 @@ final class UrlencodedBody implements BodyInterface
         return http_build_query($this->data);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentType(): ?string
     {
         return $this->contentType;

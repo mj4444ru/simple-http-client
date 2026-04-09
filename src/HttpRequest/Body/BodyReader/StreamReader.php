@@ -26,9 +26,6 @@ class StreamReader extends BaseReader
         parent::__construct($offset, $length);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function calcBytesLeft(?int $offset, ?int $length): int
     {
         if ($length !== null && $length >= 0) {
@@ -69,9 +66,6 @@ class StreamReader extends BaseReader
         return $bytesLeft;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function readBytes(int $bytesToRead): string|false
     {
         return @fread($this->resource, $bytesToRead);

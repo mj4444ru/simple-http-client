@@ -34,9 +34,6 @@ final class JsonBody implements BodyInterface
         }
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentType(): ?string
     {
         return $this->contentType;

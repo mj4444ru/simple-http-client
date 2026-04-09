@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient;
 
-use Mj4444\SimpleHttpClient\Contracts\HttpClientInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpClientExInterface;
 
-abstract class BaseHttpClient implements HttpClientInterface
+abstract class BaseHttpClient implements HttpClientExInterface
 {
     public bool $followLocation = false;
     /**
@@ -19,15 +19,6 @@ abstract class BaseHttpClient implements HttpClientInterface
     public int $maxRedirects = 20;
     public bool $responseHeadersRequired = false;
 
-    /**
-     * @param positive-int|null $connectTimeout
-     * @return $this
-     */
-    abstract public function setConnectTimeout(?int $connectTimeout): static;
-
-    /**
-     * @return $this
-     */
     public function setFollowLocation(bool $followLocation): static
     {
         $this->followLocation = $followLocation;
@@ -35,10 +26,6 @@ abstract class BaseHttpClient implements HttpClientInterface
         return $this;
     }
 
-    /**
-     * @param non-empty-string $header
-     * @return $this
-     */
     public function setHeader(string|int $index, string $header): static
     {
         $this->headers[$index] = $header;
@@ -46,10 +33,6 @@ abstract class BaseHttpClient implements HttpClientInterface
         return $this;
     }
 
-    /**
-     * @param non-empty-string[] $headers
-     * @return $this
-     */
     public function setHeaders(array $headers): static
     {
         $this->headers = $headers;
@@ -57,10 +40,6 @@ abstract class BaseHttpClient implements HttpClientInterface
         return $this;
     }
 
-    /**
-     * @param int<-1, max> $maxRedirects
-     * @return $this
-     */
     public function setMaxRedirects(int $maxRedirects): static
     {
         $this->maxRedirects = $maxRedirects;
@@ -68,18 +47,10 @@ abstract class BaseHttpClient implements HttpClientInterface
         return $this;
     }
 
-    abstract public function setReferer(?string $referer): static;
-
-    public function setResponseHeadersRequired(bool $value): void
+    public function setResponseHeadersRequired(bool $value): static
     {
         $this->responseHeadersRequired = $value;
+
+        return $this;
     }
-
-    /**
-     * @param positive-int|null $timeout
-     * @return $this
-     */
-    abstract public function setTimeout(?int $timeout): static;
-
-    abstract public function setUserAgent(?string $userAgent): static;
 }

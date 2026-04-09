@@ -14,8 +14,8 @@ use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FileInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\FormInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\StringFileInterface;
+use Mj4444\SimpleHttpClient\Contracts\HttpRequestExInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
-use Mj4444\SimpleHttpClient\Contracts\HttpRequestTimeoutInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
@@ -90,7 +90,7 @@ class CurlHttpClient extends BaseHttpClient
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @template TResponse of HttpResponseInterface
      * @param HttpRequestInterface<TResponse> $request
@@ -119,20 +119,20 @@ class CurlHttpClient extends BaseHttpClient
             $this->preparePost($options, $body);
         }
 
-        if ($request instanceof HttpRequestTimeoutInterface) {
-            if (($connectTimeout = $request->getConnectTimeout()) !== null) {
-                if ($connectTimeout > 0) {
-                    $options[CURLOPT_CONNECTTIMEOUT] = $connectTimeout;
-                } else {
-                    unset($options[CURLOPT_CONNECTTIMEOUT]);
-                }
+        if (($connectTimeout = $request->getConnectTimeout()) !== null) {
+            unset($options[CURLOPT_CONNECTTIMEOUT]);
+            if ($connectTimeout === 0 || $connectTimeout > 0) {
+                $options[CURLOPT_CONNECTTIMEOUT_MS] = $connectTimeout;
+            } else {
+                unset($options[CURLOPT_CONNECTTIMEOUT_MS]);
             }
-            if (($timeout = $request->getTimeout()) !== null) {
-                if ($timeout > 0) {
-                    $options[CURLOPT_TIMEOUT] = $timeout;
-                } else {
-                    unset($options[CURLOPT_TIMEOUT]);
-                }
+        }
+        if (($timeout = $request->getTimeout()) !== null) {
+            unset($options[CURLOPT_TIMEOUT]);
+            if ($timeout === 0 || $timeout > 0) {
+                $options[CURLOPT_TIMEOUT_MS] = $timeout;
+            } else {
+                unset($options[CURLOPT_TIMEOUT_MS]);
             }
         }
 
@@ -149,31 +149,25 @@ class CurlHttpClient extends BaseHttpClient
         return $this;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setConnectTimeout(?int $connectTimeout): static
     {
-        $this->options[CURLOPT_CONNECTTIMEOUT] = $connectTimeout;
-
-        return $this;
+        return $this->setOption(CURLOPT_CONNECTTIMEOUT_MS, $connectTimeout);
     }
 
     /**
      * @return $this
      */
-    public function setOption(int $option, string|int|bool|CurlShareHandle $value): static
+    public function setOption(int $option, string|int|bool|CurlShareHandle|null $value): static
     {
-        $this->options[$option] = $value;
+        if ($value === null) {
+            unset($this->options[$option]);
+        } else {
+            $this->options[$option] = $value;
+        }
 
         return $this;
     }
 
-    /**
-     * Enable proxy for curl requests. Empty string will disable proxy.
-     *
-     * @return $this
-     */
     public function setProxy(string $proxyString = '', bool $socks5 = false): static
     {
         if (empty($proxyString)) {
@@ -195,19 +189,12 @@ class CurlHttpClient extends BaseHttpClient
 
     public function setReferer(?string $referer): static
     {
-        $this->options[CURLOPT_REFERER] = $referer;
-
-        return $this;
+        return $this->setOption(CURLOPT_REFERER, $referer);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function setTimeout(?int $timeout): static
     {
-        $this->options[CURLOPT_TIMEOUT] = $timeout;
-
-        return $this;
+        return $this->setOption(CURLOPT_TIMEOUT_MS, $timeout);
     }
 
     public function setUsePersistentCurlHandle(bool $usePersistentCurlHandle): void
@@ -217,9 +204,7 @@ class CurlHttpClient extends BaseHttpClient
 
     public function setUserAgent(?string $userAgent): static
     {
-        $this->options[CURLOPT_USERAGENT] = $userAgent;
-
-        return $this;
+        return $this->setOption(CURLOPT_USERAGENT, $userAgent);
     }
 
     /**
@@ -250,6 +235,8 @@ class CurlHttpClient extends BaseHttpClient
                 $parts = explode(':', $header, 2);
                 if (count($parts) === 2) {
                     $headers[strtolower(trim($parts[0]))][] = trim($parts[1]);
+                } else {
+                    $headers[''][] = trim($header);
                 }
 
                 return strlen($header);
@@ -261,7 +248,9 @@ class CurlHttpClient extends BaseHttpClient
         curl_setopt_array($curlHandle, $options);
 
         /** @var string|false $response */
-        $response = curl_exec($curlHandle);
+        $response = $request instanceof HttpRequestExInterface
+            ? $this->executeEx($curlHandle, $request)
+            : curl_exec($curlHandle);
 
         if ($this->curlInfoRequired) {
             /** @psalm-suppress MixedAssignment */
@@ -273,6 +262,53 @@ class CurlHttpClient extends BaseHttpClient
         }
 
         return $this->makeResponse($request, $curlHandle, $response, (string)$options[CURLOPT_URL], $headers);
+    }
+
+    protected function executeEx(CurlHandle $curlHandle, HttpRequestExInterface $request): string|false
+    {
+        $options = [];
+
+        $lowSpeedLimit = $request->getLowSpeedLimit();
+        $lowSpeedTime = $request->getLowSpeedTime();
+        if ($lowSpeedLimit !== null && $lowSpeedTime !== null) {
+            $options[CURLOPT_LOW_SPEED_LIMIT] = $lowSpeedLimit;
+            $options[CURLOPT_LOW_SPEED_TIME] = $lowSpeedTime;
+        }
+
+        if (($resource = $request->getResourceForResponseBody()) !== null) {
+            $options[CURLOPT_FILE] = $resource;
+
+            if (($resumeFrom = $request->getResumeFrom()) !== null) {
+                $options[CURLOPT_RESUME_FROM] = $resumeFrom;
+            }
+        } elseif (($writeFunction = $request->getWriteFunction()) !== null) {
+            $options[CURLOPT_WRITEFUNCTION] = $writeFunction;
+        }
+
+        if (($progressCallback = $request->getProgressCallback()) !== null) {
+            $state = null;
+            $fn = static function (CurlHandle $_curlHandle, int $p1, int $p2, int $p3, int $p4) use ($progressCallback, &$state): int {
+                $newState = "$p1|$p2|$p3|$p4";
+                if ($state === $newState) {
+                    return 0;
+                }
+
+                $state = $newState;
+
+                return ($progressCallback)($p1, $p2, $p3, $p4) ? 0 : 1;
+            };
+            $options[CURLOPT_NOPROGRESS] = false;
+            $options[CURLOPT_XFERINFOFUNCTION] = $fn;
+            $options[CURLOPT_PROGRESSFUNCTION] = $fn;
+        }
+
+        if ($options) {
+            curl_setopt_array($curlHandle, $options);
+        }
+
+        $result = curl_exec($curlHandle);
+
+        return $result === true ? '' : $result;
     }
 
     protected function getCurlHandle(): CurlHandle
@@ -335,7 +371,6 @@ class CurlHttpClient extends BaseHttpClient
 
         /** @psalm-suppress MixedArrayAssignment */
         $options[CURLOPT_HTTPHEADER][] = 'Content-Type: ' . ($body->getContentType() ?? '');
-
 
         if ($postData instanceof BodyReaderInterface) {
             $options[CURLOPT_INFILESIZE] = $postData->getBytesLeft();

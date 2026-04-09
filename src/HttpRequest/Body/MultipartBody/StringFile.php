@@ -25,17 +25,11 @@ final readonly class StringFile implements StringFileInterface
         return $this->data;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getMime(): string
     {
         return $this->mime;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPostName(): string
     {
         return $this->postName;

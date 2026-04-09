@@ -1,5 +1,17 @@
 # Simple Http Client
 
+This client makes complex HTTP requests easy.
+
+It's useful for building API clients, various parsers, and handling complex multi-step request workflows.
+
+## Key Features
+
+- The client, request, and response are fully abstract and interface-based.
+- A set of ready-to-use classes simplifies working with any types of sent and received data.
+- Tools for working with streaming data (upload, download).
+- A dedicated client for JSON responses.
+- Using your own implementations of request and response interfaces keeps your code organized.
+
 > [!WARNING]
 > Versions of this package earlier than "v1" may be incompatible.
 > When connecting, please specify the exact package version to avoid automatic updates.
@@ -37,8 +49,6 @@ Add the following lines to the `composer.json` file:
 ```php
 use Mj4444\SimpleHttpClient\CurlHttpClient;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
-
-require dirname(__DIR__) . '/vendor/autoload.php';
 
 $client = new CurlHttpClient();
 $request = new HttpRequest('http://www.google.com');
@@ -120,6 +130,27 @@ $data = $client->post('https://example.com', ['body' => 'demo'], ['q' => 'demo']
 $data = $client->post('https://example.com', new NoBody());
 
 $data = $client->post('https://example.com', new UrlencodedBody([['q' => 'demo']]));
+```
+
+#### Extended request
+
+```php
+use Mj4444\SimpleHttpClient\CurlHttpClient;
+use Mj4444\SimpleHttpClient\HttpRequest\HttpRequestEx;
+
+$client = new CurlHttpClient();
+$fp = fopen('php://temp', 'rb+');
+$request = new HttpRequestEx('https://google.com');
+$request->setFollowLocation(true);
+$request->setResourceForResponseBody($fp);
+$progressCallback = static function ($bytesToDownload, $bytesDownloaded, $bytesToUpload, $bytesUploaded): bool {
+    echo sprintf("%d / %d -- %d / %d\n", $bytesToDownload, $bytesDownloaded, $bytesToUpload, $bytesUploaded);
+
+    return true;
+};
+$request->setProgressCallback($progressCallback);
+$response = $client->request($request);
+$response->checkHttpCode(200);
 ```
 
 ## Supported Body

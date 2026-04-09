@@ -36,12 +36,12 @@ final class CurlHttpClientTest extends Unit
     {
         // Simple test
         $client = new CurlHttpClient([CURLOPT_CONNECTTIMEOUT => 10]);
-        self::assertEquals([CURLOPT_CONNECTTIMEOUT => 10], $client->getOptions());
+        self::assertSame([CURLOPT_CONNECTTIMEOUT => 10], $client->getOptions());
 
         // Simple test
         $client = new CurlHttpClient([CURLOPT_CONNECTTIMEOUT => 10]);
         $options = $client->getOptions();
-        self::assertEquals([CURLOPT_CONNECTTIMEOUT => 10], $options);
+        self::assertSame([CURLOPT_CONNECTTIMEOUT => 10], $options);
     }
 
     public function testInitShareData(): void
@@ -131,62 +131,69 @@ final class CurlHttpClientTest extends Unit
         $client = new CurlHttpClient([CURLOPT_TIMEOUT => 30, CURLOPT_CONNECTTIMEOUT => 10]);
         $client->resetOptions();
         $options = $client->getOptions();
-        self::assertEquals([], $options);
+        self::assertSame([], $options);
     }
 
     public function testSetConnectTimeout(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $options = $client->setConnectTimeout(10)->getOptions();
-        self::assertEquals([CURLOPT_CONNECTTIMEOUT => 10], $options);
+        $options = $client->setConnectTimeout(10000)->getOptions();
+        self::assertSame([CURLOPT_CONNECTTIMEOUT_MS => 10000], $options);
     }
 
     public function testSetFollowLocation(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $client->setFollowLocation(true);
+        $result = $client->setFollowLocation(true);
         self::assertTrue($client->followLocation);
+        self::assertSame($client, $result);
 
         // Simple test
         $client = new CurlHttpClient();
-        $client->setFollowLocation(false);
+        $result = $client->setFollowLocation(false);
         self::assertFalse($client->followLocation);
+        self::assertSame($client, $result);
     }
 
     public function testSetHeader(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $client->setHeader(0, 'Content-Type: application/json');
-        self::assertEquals(['Content-Type: application/json'], $client->headers);
+        $result = $client->setHeader(0, 'Content-Type: application/json');
+        self::assertSame(['Content-Type: application/json'], $client->headers);
+        self::assertSame($client, $result);
 
         // Simple test
         $client = new CurlHttpClient();
-        $client->setHeader('auth', 'Authorization: Bearer token');
-        self::assertEquals(['auth' => 'Authorization: Bearer token'], $client->headers);
+        $result = $client->setHeader('auth', 'Authorization: Bearer token');
+        self::assertSame(['auth' => 'Authorization: Bearer token'], $client->headers);
+        self::assertSame($client, $result);
     }
 
     public function testSetHeaders(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $client->setHeaders(['Content-Type: application/json', 'Accept: application/json']);
-        self::assertEquals(['Content-Type: application/json', 'Accept: application/json'], $client->headers);
+        $result = $client->setHeaders(['Content-Type: application/json', 'Accept: application/json']);
+        self::assertSame(['Content-Type: application/json', 'Accept: application/json'], $client->headers);
+        self::assertSame($client, $result);
     }
 
     public function testSetMaxRedirects(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $client->setMaxRedirects(5);
+        $result = $client->setMaxRedirects(5);
         self::assertSame(5, $client->maxRedirects);
+        self::assertSame($client, $result);
 
         // Simple test
         $client = new CurlHttpClient();
-        $client->setMaxRedirects(-1);
+        $result = $client->setMaxRedirects(-1);
         self::assertSame(-1, $client->maxRedirects);
+        self::assertSame($client, $result);
     }
 
     public function testSetOption(): void
@@ -194,7 +201,7 @@ final class CurlHttpClientTest extends Unit
         // Simple test
         $client = new CurlHttpClient();
         $options = $client->setOption(CURLOPT_CONNECTTIMEOUT, 10)->getOptions();
-        self::assertEquals([CURLOPT_CONNECTTIMEOUT => 10], $options);
+        self::assertSame([CURLOPT_CONNECTTIMEOUT => 10], $options);
     }
 
     public function testSetProxy(): void
@@ -203,18 +210,19 @@ final class CurlHttpClientTest extends Unit
         $client = new CurlHttpClient();
 
         // Complex test
-        $client->setProxy('http://proxy.example.com:8080');
-        $options = $client->getOptions();
-        self::assertEquals([
+        $result = $client->setProxy('http://proxy.example.com:8080');
+        self::assertSame([
             CURLOPT_PROXY => 'http://proxy.example.com:8080',
             CURLOPT_HTTPPROXYTUNNEL => true,
             CURLOPT_PROXYTYPE => CURLPROXY_HTTP,
-        ], $options);
+        ], $client->getOptions());
+        self::assertSame($client, $result);
 
         // Complex test
-        $client->setProxy('socks5://proxy.example.com:1080', true);
+        $result = $client->setProxy('socks5://proxy.example.com:1080', true);
         $options = $client->getOptions();
         self::assertEquals(CURLPROXY_SOCKS5, $options[CURLOPT_PROXYTYPE] ?? null);
+        self::assertSame($client, $result);
 
         // Complex test
         $client->setProxy('');
@@ -227,38 +235,40 @@ final class CurlHttpClientTest extends Unit
         // Simple test
         $client = new CurlHttpClient();
         $options = $client->setReferer('https://example.com')->getOptions();
-        self::assertEquals([CURLOPT_REFERER => 'https://example.com'], $options);
+        self::assertSame([CURLOPT_REFERER => 'https://example.com'], $options);
 
         // Simple test
         $client = new CurlHttpClient();
-        $options = $client->setReferer(null)->getOptions();
-        self::assertEquals([CURLOPT_REFERER => null], $options);
+        $options = $client->setReferer('https://example.com')->setReferer(null)->getOptions();
+        self::assertSame([], $options);
     }
 
     public function testSetResponseHeadersRequired(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $client->setResponseHeadersRequired(true);
+        $result = $client->setResponseHeadersRequired(true);
         self::assertTrue($client->responseHeadersRequired);
+        self::assertSame($client, $result);
 
         // Simple test
         $client = new CurlHttpClient();
-        $client->setResponseHeadersRequired(false);
+        $result = $client->setResponseHeadersRequired(false);
         self::assertFalse($client->responseHeadersRequired);
+        self::assertSame($client, $result);
     }
 
     public function testSetTimeout(): void
     {
         // Simple test
         $client = new CurlHttpClient();
-        $options = $client->setTimeout(30)->getOptions();
-        self::assertEquals([CURLOPT_TIMEOUT => 30], $options);
+        $options = $client->setTimeout(30000)->getOptions();
+        self::assertSame([CURLOPT_TIMEOUT_MS => 30000], $options);
 
         // Simple test
         $client = new CurlHttpClient();
-        $options = $client->setTimeout(null)->getOptions();
-        self::assertEquals([CURLOPT_TIMEOUT => null], $options);
+        $options = $client->setTimeout(30000)->setTimeout(null)->getOptions();
+        self::assertSame([], $options);
     }
 
     public function testSetUsePersistentCurlHandle(): void
@@ -279,12 +289,12 @@ final class CurlHttpClientTest extends Unit
         // Simple test
         $client = new CurlHttpClient();
         $options = $client->setUserAgent('MyApp/1.0')->getOptions();
-        self::assertEquals([CURLOPT_USERAGENT => 'MyApp/1.0'], $options);
+        self::assertSame([CURLOPT_USERAGENT => 'MyApp/1.0'], $options);
 
         // Simple test
         $client = new CurlHttpClient();
-        $options = $client->setUserAgent(null)->getOptions();
-        self::assertEquals([CURLOPT_USERAGENT => null], $options);
+        $options = $client->setUserAgent('MyApp/1.0')->setUserAgent(null)->getOptions();
+        self::assertSame([], $options);
     }
 
     public function testUnsetOption(): void
@@ -292,8 +302,7 @@ final class CurlHttpClientTest extends Unit
         // Simple test
         $client = new CurlHttpClient([CURLOPT_TIMEOUT => 30, CURLOPT_CONNECTTIMEOUT => 10]);
         $client->unsetOption(CURLOPT_TIMEOUT);
-        $options = $client->getOptions();
-        self::assertEquals([CURLOPT_CONNECTTIMEOUT => 10], $options);
+        self::assertSame([CURLOPT_CONNECTTIMEOUT => 10], $client->getOptions());
     }
 
     /**

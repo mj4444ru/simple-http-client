@@ -24,9 +24,6 @@ final class StringReader extends BaseReader
         parent::__construct($offset, $length);
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function calcBytesLeft(?int $offset, ?int $length): int
     {
         if ($length === null) {
@@ -45,9 +42,6 @@ final class StringReader extends BaseReader
         return $bytesLeft;
     }
 
-    /**
-     * @inheritDoc
-     */
     protected function readBytes(int $bytesToRead): string
     {
         $content = substr($this->content, $this->offset, $bytesToRead);

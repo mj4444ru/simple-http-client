@@ -20,25 +20,16 @@ final readonly class File implements FileInterface
     ) {
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getFileName(): string
     {
         return $this->fileName;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getMime(): string
     {
         return $this->mime;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getPostName(): string
     {
         return $this->postName;

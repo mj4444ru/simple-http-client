@@ -22,9 +22,6 @@ final class StringBody implements BodyInterface
         return $this->value;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentType(): ?string
     {
         return $this->contentType;

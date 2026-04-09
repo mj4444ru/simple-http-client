@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Unit;
 
 use Codeception\Test\Unit;
+use InvalidArgumentException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\Http\NotAcceptableException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpResponse\UnexpectedContentTypeException;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\FileBody;
@@ -24,6 +25,68 @@ use function sprintf;
 
 final class HttpRequestTest extends Unit
 {
+    public function testAddContentLengthHeader(): void
+    {
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $result = $request->addContentLengthHeader(1024);
+        self::assertSame($request, $result);
+        self::assertSame(['content-length' => 'Content-Length: 1024'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $request->addContentLengthHeader(0);
+        self::assertSame(['content-length' => 'Content-Length: 0'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            /** @psalm-suppress InvalidArgument */
+            $request->addContentLengthHeader(-1);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('Invalid value for $length argument.', $e->getMessage());
+        }
+    }
+
+    public function testAddContentRangeHeader(): void
+    {
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $result = $request->addContentRangeHeader(0, 499, 1000);
+        self::assertSame($request, $result);
+        self::assertSame([
+            'content-range' => 'Content-Range: bytes 0-499/1000',
+            'content-length' => 'Content-Length: 500',
+        ], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $request->addContentRangeHeader(500, 999, 1000);
+        self::assertSame([
+            'content-range' => 'Content-Range: bytes 500-999/1000',
+            'content-length' => 'Content-Length: 500',
+        ], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            $request->addContentRangeHeader(500, 499, 1000);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('Invalid values for $rangeStart or $rangeEnd argument.', $e->getMessage());
+        }
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            $request->addContentRangeHeader(0, 1000, 1000);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('The $rangeEnd argument must be less than the $size argument.', $e->getMessage());
+        }
+    }
+
     public function testAddHeader(): void
     {
         // Prepare complex tests
@@ -36,6 +99,68 @@ final class HttpRequestTest extends Unit
         // Complex test
         $request->addHeader('X-Test: Test');
         self::assertSame(['X-Test: Test', 'X-Test: Test'], $request->getHeaders());
+    }
+
+    public function testAddRangeHeader(): void
+    {
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $result = $request->addRangeHeader(0, 499);
+        self::assertSame($request, $result);
+        self::assertSame(['range' => 'Range: bytes=0-499'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $request->addRangeHeader(0, 100);
+        self::assertSame(['range' => 'Range: bytes=0-100'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $request->addRangeHeader(500);
+        self::assertSame(['range' => 'Range: bytes=500-'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        $request->addRangeHeader(rangeEnd: 100);
+        self::assertSame(['range' => 'Range: bytes=-100'], $request->getHeaders());
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            $request->addRangeHeader();
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('At least one non-null argument must be passed.', $e->getMessage());
+        }
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            /** @psalm-suppress InvalidArgument */
+            $request->addRangeHeader(-1, 100);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('Invalid value for $rangeStart argument.', $e->getMessage());
+        }
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            /** @psalm-suppress InvalidArgument */
+            $request->addRangeHeader(0, -1);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('Invalid value for $rangeEnd argument.', $e->getMessage());
+        }
+
+        // Simple test
+        $request = new HttpRequest('https://example.com');
+        try {
+            $request->addRangeHeader(500, 400);
+            self::failException(InvalidArgumentException::class);
+        } catch (InvalidArgumentException $e) {
+            self::assertSame('The $rangeEnd argument cannot be less than the $rangeStart argument.', $e->getMessage());
+        }
     }
 
     public function testConstructor(): void

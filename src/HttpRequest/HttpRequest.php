@@ -11,9 +11,6 @@ use Mj4444\SimpleHttpClient\HttpResponse\HttpResponse;
  */
 final class HttpRequest extends BaseHttpRequest
 {
-    /**
-     * @inheritDoc
-     */
     public function makeResponse(
         int $httpCode,
         string $url,

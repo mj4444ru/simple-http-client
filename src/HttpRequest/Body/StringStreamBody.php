@@ -26,9 +26,6 @@ final class StringStreamBody implements BodyInterface
         return new StringReader($this->content, $this->offset, $this->length);
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getContentType(): ?string
     {
         return $this->contentType;

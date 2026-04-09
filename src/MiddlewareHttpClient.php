@@ -22,7 +22,7 @@ final class MiddlewareHttpClient implements HttpClientInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @template TResponse of HttpResponseInterface
      * @param HttpRequestInterface<TResponse> $request

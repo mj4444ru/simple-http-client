@@ -40,7 +40,7 @@ abstract class BaseHttpResponse implements HttpResponseInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @throws UnexpectedContentTypeException
      */
@@ -66,7 +66,7 @@ abstract class BaseHttpResponse implements HttpResponseInterface
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @throws HttpException
      */
@@ -109,9 +109,6 @@ abstract class BaseHttpResponse implements HttpResponseInterface
         return $result !== false ? $result : null;
     }
 
-    /**
-     * @inheritDoc
-     */
     public function getHeaders(): array
     {
         return $this->headers;

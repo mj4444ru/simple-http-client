@@ -30,17 +30,11 @@ abstract class BaseReader implements BodyReaderInterface
         $this->bytesLeft = $this->calcBytesLeft($offset, $length);
     }
 
-    /**
-     * @inheritDoc
-     */
     final public function getBytesLeft(): int
     {
         return $this->bytesLeft;
     }
 
-    /**
-     * @inheritDoc
-     */
     final public function read(int $maxBytesToRead): string
     {
         $bytesToRead = min($maxBytesToRead, $this->bytesLeft);
