@@ -7,7 +7,7 @@ namespace Unit;
 use Codeception\Test\Unit;
 use CurlShareHandle;
 use Mj4444\SimpleHttpClient\CurlHttpClient;
-use Mj4444\SimpleHttpClient\Exceptions\CurlException;
+use Mj4444\SimpleHttpClient\Exceptions\GeneralException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpMethod;
 use Mj4444\SimpleHttpClient\HttpRequest\HttpRequest;
@@ -61,8 +61,9 @@ final class CurlHttpClientTest extends Unit
         $client->curlInfoRequired = false;
         try {
             $client->request(new HttpRequest('nourl://nohost'));
-            self::failException(CurlException::class);
-        } catch (CurlException) {
+            self::failException(GeneralException::class);
+        } catch (GeneralException $e) {
+            self::assertSame(GeneralException::UNSUPPORTED_PROTOCOL, $e->getCode());
         }
         self::assertNull($client->lastCurlInfo);
 
@@ -71,8 +72,9 @@ final class CurlHttpClientTest extends Unit
         $client->curlInfoRequired = false;
         try {
             $client->request(new HttpRequest('nourl://nohost'));
-            self::failException(CurlException::class);
-        } catch (CurlException) {
+            self::failException(GeneralException::class);
+        } catch (GeneralException) {
+            self::assertSame(GeneralException::UNSUPPORTED_PROTOCOL, $e->getCode());
         }
         self::assertNull($client->lastCurlInfo);
 
@@ -81,8 +83,9 @@ final class CurlHttpClientTest extends Unit
         $client->curlInfoRequired = true;
         try {
             $client->request(new HttpRequest('nourl://nohost'));
-            self::failException(CurlException::class);
-        } catch (CurlException) {
+            self::failException(GeneralException::class);
+        } catch (GeneralException) {
+            self::assertSame(GeneralException::UNSUPPORTED_PROTOCOL, $e->getCode());
         }
         self::assertIsArray($client->lastCurlInfo);
         self::assertArrayHasKey('url', $client->lastCurlInfo);

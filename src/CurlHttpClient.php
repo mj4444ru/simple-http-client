@@ -18,6 +18,7 @@ use Mj4444\SimpleHttpClient\Contracts\HttpRequestExInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequestInterface;
 use Mj4444\SimpleHttpClient\Contracts\HttpResponseInterface;
 use Mj4444\SimpleHttpClient\Exceptions\CurlException;
+use Mj4444\SimpleHttpClient\Exceptions\GeneralException;
 use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\BodyRequiredException;
 
 use function count;
@@ -258,7 +259,10 @@ class CurlHttpClient extends BaseHttpClient
         }
 
         if ($response === false) {
-            throw new CurlException(curl_error($curlHandle), curl_errno($curlHandle));
+            $curlErrno = curl_errno($curlHandle);
+            $generalErrCode = static::getGeneralErrCode($curlErrno)
+                ?? throw new CurlException(curl_error($curlHandle), $curlErrno);
+            throw new GeneralException(curl_error($curlHandle), $generalErrCode);
         }
 
         return $this->makeResponse($request, $curlHandle, $response, (string)$options[CURLOPT_URL], $headers);
@@ -382,5 +386,33 @@ class CurlHttpClient extends BaseHttpClient
         } else {
             $options[CURLOPT_POSTFIELDS] = $postData;
         }
+    }
+
+    private static function getGeneralErrCode(int $curlErrno): ?int
+    {
+        return [
+            CURLE_UNSUPPORTED_PROTOCOL => GeneralException::UNSUPPORTED_PROTOCOL,
+            CURLE_FAILED_INIT => GeneralException::FAILED_INIT,
+            CURLE_URL_MALFORMAT => GeneralException::URL_MALFORMAT,
+            CURLE_COULDNT_RESOLVE_HOST => GeneralException::COULDNT_RESOLVE_HOST,
+            CURLE_COULDNT_CONNECT => GeneralException::COULDNT_CONNECT,
+            CURLE_WRITE_ERROR => GeneralException::WRITE_ERROR,
+            CURLE_READ_ERROR => GeneralException::READ_ERROR,
+            CURLE_OUT_OF_MEMORY => GeneralException::OUT_OF_MEMORY,
+            CURLE_OPERATION_TIMEOUTED => GeneralException::OPERATION_TIMEOUTED,
+            CURLE_HTTP_RANGE_ERROR => GeneralException::HTTP_RANGE_ERROR,
+            CURLE_SSL_CONNECT_ERROR => GeneralException::SSL_CONNECT_ERROR,
+            CURLE_ABORTED_BY_CALLBACK => GeneralException::ABORTED_BY_CALLBACK,
+            CURLE_HTTP_PORT_FAILED => GeneralException::HTTP_PORT_FAILED,
+            CURLE_TOO_MANY_REDIRECTS => GeneralException::TOO_MANY_REDIRECTS,
+            CURLE_GOT_NOTHING => GeneralException::GOT_NOTHING,
+            CURLE_SEND_ERROR => GeneralException::SEND_ERROR,
+            CURLE_RECV_ERROR => GeneralException::RECV_ERROR,
+            CURLE_SSL_CERTPROBLEM => GeneralException::SSL_CERTPROBLEM,
+            CURLE_SSL_CIPHER => GeneralException::SSL_CIPHER,
+            CURLE_SSL_PEER_CERTIFICATE => GeneralException::SSL_PEER_CERTIFICATE,
+            CURLE_BAD_CONTENT_ENCODING => GeneralException::BAD_CONTENT_ENCODING,
+            CURLE_FILESIZE_EXCEEDED => GeneralException::FILESIZE_EXCEEDED,
+        ][$curlErrno] ?? null;
     }
 }
