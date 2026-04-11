@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
+use Closure;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 
 use function strlen;
@@ -15,13 +16,15 @@ final class StringReader extends BaseReader
 {
     /**
      * @param non-negative-int $offset
+     * @param Closure(non-negative-int $bytesSent, non-negative-int $totalBytes): void|null $progressCallback
      */
     public function __construct(
         private readonly string $content,
         private int $offset = 0,
-        ?int $length = null
+        ?int $length = null,
+        ?Closure $progressCallback = null
     ) {
-        parent::__construct($offset, $length);
+        parent::__construct($offset, $length, $progressCallback);
     }
 
     protected function calcBytesLeft(?int $offset, ?int $length): int

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
+use Closure;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 
@@ -15,10 +16,18 @@ abstract class BaseReader implements BodyReaderInterface
      * @var non-negative-int
      */
     private int $bytesLeft;
+    /**
+     * @var non-negative-int
+     */
+    private int $totalBytes;
 
+    /**
+     * @param Closure(non-negative-int $bytesSent, non-negative-int $totalBytes): void|null $progressCallback
+     */
     public function __construct(
         ?int $offset = null,
-        ?int $length = null
+        ?int $length = null,
+        private readonly ?Closure $progressCallback = null
     ) {
         if ($offset !== null) {
             if ($offset < 0) {
@@ -28,6 +37,7 @@ abstract class BaseReader implements BodyReaderInterface
         }
 
         $this->bytesLeft = $this->calcBytesLeft($offset, $length);
+        $this->totalBytes = $this->bytesLeft;
     }
 
     final public function getBytesLeft(): int
@@ -50,6 +60,11 @@ abstract class BaseReader implements BodyReaderInterface
 
         if ($content === false || strlen($content) < $bytesToRead) {
             throw new ReaderException('Not enough data to read.');
+        }
+
+        if ($this->progressCallback !== null) {
+            /** @psalm-suppress InvalidArgument */
+            ($this->progressCallback)($this->totalBytes - $this->bytesLeft, $this->totalBytes);
         }
 
         return $content;

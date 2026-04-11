@@ -26,6 +26,31 @@ final class StringReaderTest extends Unit
         self::assertSame(0, strlen($reader->read(10)));
     }
 
+    public function testProgressCallback(): void
+    {
+        $content = 'test content for progress callback';
+        $totalBytes = strlen($content);
+        /** @var list<array{bytesSent: int, totalBytes: int}> $calls */
+        $calls = [];
+
+        $reader = new StringReader(
+            $content,
+            progressCallback: static function (int $bytesSent, int $totalBytes) use (&$calls): void {
+                $calls[] = ['bytesSent' => $bytesSent, 'totalBytes' => $totalBytes];
+            }
+        );
+
+        $reader->read(10);
+        $reader->read(10);
+        $reader->read($totalBytes);
+
+        self::assertCount(3, $calls);
+        /** @psalm-suppress PossiblyUndefinedArrayOffset */
+        self::assertSame(['bytesSent' => 10, 'totalBytes' => $totalBytes], $calls[0]);
+        self::assertSame(['bytesSent' => 20, 'totalBytes' => $totalBytes], $calls[1]);
+        self::assertSame(['bytesSent' => $totalBytes, 'totalBytes' => $totalBytes], $calls[2]);
+    }
+
     /**
      * @throws RandomException
      */

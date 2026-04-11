@@ -65,6 +65,33 @@ final class FileReaderTest extends Unit
         self::assertSame(100, $reader->getBytesLeft());
     }
 
+    public function testProgressCallback(): void
+    {
+        // Simple test
+        $fileSize = filesize(__FILE__);
+        self::assertNotFalse($fileSize);
+        /** @var list<array{bytesSent: int, totalBytes: int}> $calls */
+        $calls = [];
+
+        $reader = new FileReader(
+            __FILE__,
+            progressCallback: static function (int $bytesSent, int $totalBytes) use (&$calls): void {
+                $calls[] = ['bytesSent' => $bytesSent, 'totalBytes' => $totalBytes];
+            }
+        );
+
+        $reader->read(100);
+        $reader->read(200);
+        /** @psalm-suppress ArgumentTypeCoercion */
+        $reader->read($fileSize);
+
+        self::assertCount(3, $calls);
+        /** @psalm-suppress PossiblyUndefinedArrayOffset */
+        self::assertSame(['bytesSent' => 100, 'totalBytes' => $fileSize], $calls[0]);
+        self::assertSame(['bytesSent' => 300, 'totalBytes' => $fileSize], $calls[1]);
+        self::assertSame(['bytesSent' => $fileSize, 'totalBytes' => $fileSize], $calls[2]);
+    }
+
     public function testRead(): void
     {
         // Simple test

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
+use Closure;
 use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
 use Throwable;
 
@@ -17,13 +18,15 @@ class StreamReader extends BaseReader
     /**
      * @param resource $resource
      * @param non-negative-int|null $offset
+     * @param Closure(non-negative-int $bytesSent, non-negative-int $totalBytes): void|null $progressCallback
      */
     public function __construct(
         private readonly mixed $resource,
         ?int $offset = null,
-        ?int $length = null
+        ?int $length = null,
+        ?Closure $progressCallback = null
     ) {
-        parent::__construct($offset, $length);
+        parent::__construct($offset, $length, $progressCallback);
     }
 
     protected function calcBytesLeft(?int $offset, ?int $length): int
