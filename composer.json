@@ -31,7 +31,6 @@
     "require-dev": {
         "ext-curl": "*",
         "codeception/codeception": "^5.3",
-        "codeception/module-phpbrowser": "*",
         "codeception/module-asserts": "*",
         "vimeo/psalm": "^6.16"
     },

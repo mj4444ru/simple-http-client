@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Unit;
 
 use Codeception\Test\Unit;
-use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\ReaderException;
 use Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader\FileReader;
 
 use function sprintf;

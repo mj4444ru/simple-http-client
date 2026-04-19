@@ -6,7 +6,7 @@ namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
 use Closure;
 use Mj4444\SimpleHttpClient\Contracts\HttpRequest\BodyReaderInterface;
-use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\ReaderException;
 
 use function strlen;
 

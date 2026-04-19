@@ -7,7 +7,7 @@ namespace Mj4444\SimpleHttpClient\Exceptions;
 /**
  * Wrapper for all General errors.
  */
-final class GeneralException extends HttpClientException
+final class GeneralException extends HttpClientErrorException
 {
     public const UNSUPPORTED_PROTOCOL = 1;
     public const FAILED_INIT = 2;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Mj4444\SimpleHttpClient\HttpRequest\Body\BodyReader;
 
 use Closure;
-use Mj4444\SimpleHttpClient\Exceptions\ReaderException;
+use Mj4444\SimpleHttpClient\Exceptions\HttpRequest\ReaderException;
 
 use function sprintf;
 

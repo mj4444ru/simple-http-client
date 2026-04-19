@@ -261,8 +261,8 @@ class CurlHttpClient extends BaseHttpClient
         if ($response === false) {
             $curlErrno = curl_errno($curlHandle);
             $generalErrCode = static::getGeneralErrCode($curlErrno)
-                ?? throw new CurlException(curl_error($curlHandle), $curlErrno);
-            throw new GeneralException(curl_error($curlHandle), $generalErrCode);
+                ?? throw new CurlException(curl_error($curlHandle), $curlErrno, $request);
+            throw new GeneralException(curl_error($curlHandle), $generalErrCode, $request);
         }
 
         return $this->makeResponse($request, $curlHandle, $response, (string)$options[CURLOPT_URL], $headers);

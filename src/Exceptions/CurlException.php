@@ -7,6 +7,6 @@ namespace Mj4444\SimpleHttpClient\Exceptions;
 /**
  * Wrapper for all Curl errors.
  */
-final class CurlException extends HttpClientException
+final class CurlException extends HttpClientErrorException
 {
 }
